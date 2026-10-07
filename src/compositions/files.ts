@@ -1,7 +1,7 @@
 import { endpoint, receive, respond } from "@mit-sdg/sync-engine/boundary";
 import { no, reaction, when, where } from "@mit-sdg/sync-engine/language";
 import { concepts } from "../concepts.ts";
-import { canRead, owns } from "./access.ts";
+import { canRead } from "./access.ts";
 import { textInput } from "./reusable/inputs.ts";
 
 const { Sessioning, Storing, Sharing } = concepts;
@@ -65,23 +65,6 @@ const View = endpoint(
   { validators: { input: textInput } },
 );
 
-const Delete = endpoint(
-  "/files/delete",
-  ({ session, file, user }) =>
-    receive({ session, file })
-      .then(Sessioning.use({ session }).responds({ subject: user }))
-      .then(
-        where(owns({ user, file }))
-          .then(Storing.delete({ file }).responds({}))
-          .then(respond({ file }))
-          .named("owner"),
-        where(no(owns({ user, file })))
-          .then(respond({ error: "NOT_FOUND" }))
-          .named("refused"),
-      ),
-  { validators: { input: textInput } },
-);
-
 const RevokeSharesOfDeleted = reaction(({ file, recipient }) =>
   when(Storing.delete({ file }).responds({}))
     .where(Sharing._recipients({ item: file }).is({ recipient }))
@@ -91,5 +74,5 @@ const RevokeSharesOfDeleted = reaction(({ file, recipient }) =>
 export const composition = {
   uploading: { StartUpload, FinishUpload, DeleteOversized },
   downloading: { Download, View },
-  deleting: { Delete, RevokeSharesOfDeleted },
+  deleting: { RevokeSharesOfDeleted },
 };

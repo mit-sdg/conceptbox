@@ -1,17 +1,18 @@
 import { endpoint, receive, respond } from "@mit-sdg/sync-engine/boundary";
-import { each, former } from "@mit-sdg/sync-engine/language";
+import { each, former, no } from "@mit-sdg/sync-engine/language";
 import { concepts } from "../concepts.ts";
 import { canRead } from "./access.ts";
 import { textInput } from "./reusable/inputs.ts";
+import { myTrash } from "./trash.ts";
 
-const { Authenticating, Sessioning, Sharing, Storing } = concepts;
+const { Authenticating, Sessioning, Sharing, Storing, Trashing } = concepts;
 
-/** The files I uploaded, newest first, with the people I shared each one with. */
+/** The files I uploaded and haven't moved to the trash, newest first, with the people I shared each one with. */
 const myFiles = former(
-  "the files (user) uploaded",
+  "the files (user) uploaded and hasn't trashed",
   ({ user }, { file, name, mediaType, size, uploadedAt, recipient, username }) =>
     each(Storing._uploadedBy({ uploader: user }).is({ file, name, size, uploadedAt }))
-      .where(Storing._get({ file }).is({ mediaType }))
+      .where(no(Trashing._trashed({ item: file })), Storing._get({ file }).is({ mediaType }))
       .form({
         file,
         name,
@@ -42,7 +43,7 @@ const ShowBox = endpoint(
   ({ session, user }) =>
     receive({ session })
       .then(Sessioning.use({ session }).responds({ subject: user }))
-      .then(respond({ myFiles: myFiles({ user }), sharedWithMe: sharedWithMe({ user }) })),
+      .then(respond({ myFiles: myFiles({ user }), sharedWithMe: sharedWithMe({ user }), myTrash: myTrash({ user }) })),
   { validators: { input: textInput } },
 );
 

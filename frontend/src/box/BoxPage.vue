@@ -4,6 +4,7 @@ import Icon from "../reusable/ui/Icon.vue";
 import DropZone from "./DropZone.vue";
 import FileTile from "./FileTile.vue";
 import SharedWithMe from "./SharedWithMe.vue";
+import Trash from "./Trash.vue";
 import { useBox } from "./useBox.ts";
 
 const { box, error, refresh, reset } = useBox();
@@ -36,6 +37,7 @@ onUnmounted(() => {
         </div>
       </section>
       <SharedWithMe :files="box.sharedWithMe" />
+      <Trash :files="box.myTrash" />
     </template>
     <p v-else-if="!error" class="muted">Loading your files…</p>
   </div>

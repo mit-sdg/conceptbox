@@ -1,8 +1,8 @@
 # ConceptBox
 
-ConceptBox is a small app for keeping files and sharing them with classmates, and a reference app for building with concepts on [sync-engine](https://github.com/mit-sdg/sync-engine). You create an account with a password, upload files, share them with other people, take a share back, and delete files.
+ConceptBox is a small app for keeping files and sharing them with classmates, and a reference app for building with concepts on [sync-engine](https://github.com/mit-sdg/sync-engine). You create an account with a password, upload files, share them with other people, take a share back, and move files to the trash.
 
-This is the first step of ConceptBox's history: the Authenticating, Sessioning, Storing, and Sharing concepts, and the compositions that connect them. `src/concepts/` also holds Trashing, Labeling, Reasoning, and Consenting, written and tested, for the next steps. The next commits add a trash, an agent that describes and labels uploads, and signing in with Commons. The README in the last commit walks through the whole app and explains how to copy its parts.
+This is the second step of ConceptBox's history. It adds the trash: the trash composition, which uses the Trashing concept. The next commits add an agent that describes and labels uploads, and signing in with Commons. The README in the last commit walks through the whole app and explains how to copy its parts.
 
 The engine documentation is in `node_modules/@mit-sdg/sync-engine/docs/user/` after `bun install`. If you work with a coding agent, point it at `llms.txt` there, or install the [sync-engine skill](https://github.com/mit-sdg/sync-engine/blob/main/packages/skill/README.md) at the engine version in `package.json`.
 

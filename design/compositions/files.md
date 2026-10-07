@@ -21,8 +21,4 @@ To show a photo on screen without downloading it, the [view endpoint](reaction:f
 files.downloading.View at /files/view
 ```
 
-Only the owner may [delete a file](reaction:files.deleting.Delete), and anyone else is refused with `NOT_FOUND`. For the owner, Storing deletes the file's record and its bytes. When Storing deletes a file, a reaction [revokes every share of that file](reaction:files.deleting.RevokeSharesOfDeleted), one person at a time. Without that reaction, Sharing would still record shares of a file that no longer exists.
-
-```endpoints
-files.deleting.Delete at /files/delete
-```
+When Storing deletes a file, a reaction [revokes every share of that file](reaction:files.deleting.RevokeSharesOfDeleted), one person at a time. Without that reaction, Sharing would still record shares of a file that no longer exists.

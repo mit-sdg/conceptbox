@@ -62,7 +62,7 @@ export type ConceptBoxWire = {
     };
     output: {
       "myFiles": {
-        "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
+        "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
         "mediaType": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>>>, ["mediaType"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
         "sharedWith": {
@@ -71,6 +71,12 @@ export type ConceptBoxWire = {
         }[];
         "size": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["size"]>>;
         "uploadedAt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["uploadedAt"]>>;
+      }[];
+      "myTrash": {
+        "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
+        "size": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["size"]>>;
+        "trashedAt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>>>, ["trashedAt"]>>;
       }[];
       "sharedWithMe": {
         "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sharing"]["_sharedWith"]>>>, ["item"]>]>>;
@@ -82,16 +88,6 @@ export type ConceptBoxWire = {
       }[];
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
-  };
-  "/files/delete": {
-    input: {
-      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
-    };
-    output: {
-      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>>;
-    };
-    error: { error: AppWideError | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" };
   };
   "/files/download": {
     input: {
@@ -111,7 +107,27 @@ export type ConceptBoxWire = {
     output: {
       "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["finish"]>[0], ["file"]>>;
     };
-    error: { error: AppWideError | "ALREADY_FINISHED" | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOT_SHARED" | "NOT_SIGNED_IN" | "NOT_UPLOADED" | "TOO_LARGE" };
+    error: { error: AppWideError | "ALREADY_FINISHED" | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOT_SHARED" | "NOT_SIGNED_IN" | "NOT_TRASHED" | "NOT_UPLOADED" | "PURGED" | "TOO_LARGE" };
+  };
+  "/files/purge": {
+    input: {
+      "file": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>>;
+    };
+    error: { error: AppWideError | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" | "NOT_TRASHED" | "PURGED" };
+  };
+  "/files/restore": {
+    input: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["restore"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["restore"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" | "NOT_TRASHED" | "PURGED" };
   };
   "/files/revoke": {
     input: {
@@ -148,6 +164,16 @@ export type ConceptBoxWire = {
       "uploadUrl": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["start"]>>, ["uploadUrl"]>>;
     };
     error: { error: AppWideError | "INVALID_INPUT" | "INVALID_NAME" | "NOT_SIGNED_IN" };
+  };
+  "/files/trash": {
+    input: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["trash"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["trash"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "ALREADY_TRASHED" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" | "PURGED" };
   };
   "/files/view": {
     input: {
@@ -214,7 +240,7 @@ export type ConceptBoxWireHttp = {
     input: Record<string, never>;
     output: {
       "myFiles": {
-        "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
+        "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
         "mediaType": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>>>, ["mediaType"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
         "sharedWith": {
@@ -223,6 +249,12 @@ export type ConceptBoxWireHttp = {
         }[];
         "size": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["size"]>>;
         "uploadedAt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["uploadedAt"]>>;
+      }[];
+      "myTrash": {
+        "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
+        "size": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["size"]>>;
+        "trashedAt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>>>, ["trashedAt"]>>;
       }[];
       "sharedWithMe": {
         "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sharing"]["_sharedWith"]>>>, ["item"]>]>>;
@@ -234,15 +266,6 @@ export type ConceptBoxWireHttp = {
       }[];
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
-  };
-  "/files/delete": {
-    input: {
-      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>>;
-    };
-    output: {
-      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>>;
-    };
-    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/files/download": {
     input: {
@@ -260,7 +283,25 @@ export type ConceptBoxWireHttp = {
     output: {
       "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["finish"]>[0], ["file"]>>;
     };
-    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/files/purge": {
+    input: {
+      "file": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>]>>;
+    };
+    output: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/files/restore": {
+    input: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["restore"]>[0], ["item"]>>;
+    };
+    output: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["restore"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/files/revoke": {
     input: {
@@ -294,6 +335,15 @@ export type ConceptBoxWireHttp = {
       "uploadUrl": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["start"]>>, ["uploadUrl"]>>;
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/files/trash": {
+    input: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["trash"]>[0], ["item"]>>;
+    };
+    output: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["trash"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/files/view": {
     input: {

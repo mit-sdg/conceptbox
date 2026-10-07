@@ -9,6 +9,7 @@ type Path = keyof Wire;
 export type Box = Wire["/box"]["output"];
 export type MyFile = Box["myFiles"][number];
 export type SharedFile = Box["sharedWithMe"][number];
+export type TrashedFile = Box["myTrash"][number];
 export type Person = Wire["/people"]["output"]["people"][number];
 export type FileId = MyFile["file"];
 export type UserId = Person["person"];

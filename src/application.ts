@@ -4,6 +4,7 @@ import { composition as access } from "./compositions/access.ts";
 import { composition as box } from "./compositions/box.ts";
 import { composition as files } from "./compositions/files.ts";
 import { composition as shares } from "./compositions/shares.ts";
+import { composition as trash } from "./compositions/trash.ts";
 import { composition as accounts } from "./compositions/reusable/accounts.ts";
 import { applicationConceptSet } from "./concepts.ts";
 import type { Bucket } from "./concepts/Storing/bucket.ts";
@@ -22,6 +23,7 @@ export function assembleConceptBox(
       access,
       files,
       shares,
+      trash,
       box,
     },
   });

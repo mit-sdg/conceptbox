@@ -3,7 +3,7 @@ import { startConceptBox } from "../support/app.ts";
 import { ok } from "../support/reusable/results.ts";
 
 describe("ConceptBox", () => {
-  test("Maya uploads a photo, shares it with Sam and Ada, Sam downloads it, and Maya deletes it", async () => {
+  test("Maya uploads a photo, shares it with Sam and Ada, Sam downloads it, and Maya deletes it for good", async () => {
     const { api, application, register, upload } = await startConceptBox();
     const maya = await register("maya");
     const sam = await register("sam");
@@ -29,7 +29,8 @@ describe("ConceptBox", () => {
       ]),
     );
 
-    ok(await api.files.delete({ session: maya.session, file: photo }));
+    ok(await api.files.trash({ session: maya.session, file: photo }));
+    ok(await api.files.purge({ session: maya.session, file: photo }));
     await application.whenIdle();
     expect(ok(await api.box({ session: maya.session })).myFiles).toEqual([]);
     expect(ok(await api.box({ session: sam.session })).sharedWithMe).toEqual([]);
@@ -45,7 +46,7 @@ describe("ConceptBox", () => {
     const photo = await upload(maya.session, "beach.jpg");
 
     expect(await api.files.share({ session: sam.session, file: photo, username: "sam" })).toEqual({ error: "NOT_FOUND" });
-    expect(await api.files.delete({ session: sam.session, file: photo })).toEqual({ error: "NOT_FOUND" });
+    expect(await api.files.trash({ session: sam.session, file: photo })).toEqual({ error: "NOT_FOUND" });
     ok(await api.files.share({ session: maya.session, file: photo, username: "sam" }));
     expect(await api.files.revoke({ session: sam.session, file: photo, recipient: sam.user })).toEqual({
       error: "NOT_FOUND",
@@ -151,6 +152,62 @@ describe("ConceptBox", () => {
     const { file } = ok(await api.files.start({ session: maya.session, name: "notes.pdf", mediaType: "application/pdf" }));
     expect(await api.files.finish({ session: maya.session, file })).toMatchObject({ error: "NOT_UPLOADED" });
     expect(ok(await api.box({ session: maya.session })).myFiles).toEqual([]);
+  });
+
+  test("when Maya trashes a shared photo it leaves both boxes and Sam can't download it, and when she restores it Sam can read it again", async () => {
+    const { api, register, upload } = await startConceptBox();
+    const maya = await register("maya");
+    const sam = await register("sam");
+    const photo = await upload(maya.session, "beach.jpg");
+    ok(await api.files.share({ session: maya.session, file: photo, username: "sam" }));
+
+    ok(await api.files.trash({ session: maya.session, file: photo }));
+    const mayasBox = ok(await api.box({ session: maya.session }));
+    expect(mayasBox.myFiles).toEqual([]);
+    expect(mayasBox.myTrash).toMatchObject([{ file: photo, name: "beach.jpg" }]);
+    expect(ok(await api.box({ session: sam.session })).sharedWithMe).toEqual([]);
+    expect(await api.files.download({ session: sam.session, file: photo })).toEqual({ error: "NOT_FOUND" });
+
+    ok(await api.files.restore({ session: maya.session, file: photo }));
+    expect(ok(await api.box({ session: maya.session })).myTrash).toEqual([]);
+    expect(ok(await api.box({ session: sam.session })).sharedWithMe).toMatchObject([{ file: photo }]);
+
+    ok(await api.files.trash({ session: maya.session, file: photo }));
+    ok(await api.files.purge({ session: maya.session, file: photo }));
+    expect(await api.files.restore({ session: maya.session, file: photo })).toEqual({ error: "NOT_FOUND" });
+  });
+
+  test("Maya can't purge a photo that isn't in the trash", async () => {
+    const { api, register, upload } = await startConceptBox();
+    const maya = await register("maya");
+    const photo = await upload(maya.session, "beach.jpg");
+
+    expect(await api.files.purge({ session: maya.session, file: photo })).toEqual({ error: "NOT_TRASHED" });
+    expect(ok(await api.box({ session: maya.session })).myFiles).toMatchObject([{ file: photo }]);
+  });
+
+  test("when the bucket fails during a purge, the photo stays in Maya's trash and Sam still can't read it", async () => {
+    const { api, application, bucket, register, upload } = await startConceptBox();
+    const maya = await register("maya");
+    const sam = await register("sam");
+    const photo = await upload(maya.session, "beach.jpg");
+    ok(await api.files.share({ session: maya.session, file: photo, username: "sam" }));
+    ok(await api.files.trash({ session: maya.session, file: photo }));
+
+    const remove = bucket.remove.bind(bucket);
+    bucket.remove = async () => {
+      bucket.remove = remove;
+      throw new Error("The bucket is unavailable.");
+    };
+    expect(await api.files.purge({ session: maya.session, file: photo })).toMatchObject({ error: expect.any(String) });
+    await application.whenIdle();
+    expect(ok(await api.box({ session: maya.session })).myTrash).toMatchObject([{ file: photo }]);
+    expect(ok(await api.box({ session: sam.session })).sharedWithMe).toEqual([]);
+    expect(await api.files.download({ session: sam.session, file: photo })).toEqual({ error: "NOT_FOUND" });
+
+    ok(await api.files.purge({ session: maya.session, file: photo }));
+    await application.whenIdle();
+    expect(ok(await api.box({ session: maya.session })).myTrash).toEqual([]);
   });
 
   test("signing out ends Maya's session, and only her own password signs her in again", async () => {

@@ -11,6 +11,9 @@ const messages: Record<string, Record<string, string>> = {
     INVALID_REQUEST: "Nobody has that username. Check the spelling and capitals.",
   },
   "/files/revoke": { NOT_FOUND: "That person no longer has access to that file." },
+  "/files/trash": { CONFLICT: "That file is already in the trash." },
+  "/files/restore": { CONFLICT: "That file isn't in the trash." },
+  "/files/purge": { CONFLICT: "That file isn't in the trash." },
 };
 
 /** The sentence to show when the endpoint at `path` returns `error`. */

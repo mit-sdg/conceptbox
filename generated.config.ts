@@ -19,6 +19,7 @@ export default {
       new URL("./design/compositions/access.md", import.meta.url),
       new URL("./design/compositions/files.md", import.meta.url),
       new URL("./design/compositions/shares.md", import.meta.url),
+      new URL("./design/compositions/trash.md", import.meta.url),
       new URL("./design/compositions/box.md", import.meta.url),
     ],
   },

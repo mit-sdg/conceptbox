@@ -4,4 +4,4 @@ Storing records who uploaded a file and Sharing records whom a file is shared wi
 
 A person [owns a file](view:access.permissions.owns) when they uploaded it, and only the owner may delete a file, share it, or take a share back. The designer of another application could let a team's administrators manage files, or let someone hand a file to a colleague; they would change this view and leave Storing as it is.
 
-A person [can read a file](view:access.permissions.canRead) when they own it, or when it is still stored and shared with them.
+A person [can read a file](view:access.permissions.canRead) when they own it, or when it is still stored, shared with them, and not in the trash.

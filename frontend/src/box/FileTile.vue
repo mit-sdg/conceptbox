@@ -2,7 +2,6 @@
 import { computed, ref } from "vue";
 import { api } from "../api/client.ts";
 import Avatar from "../reusable/ui/Avatar.vue";
-import Dialog from "../reusable/ui/Dialog.vue";
 import Icon from "../reusable/ui/Icon.vue";
 import Menu from "../reusable/ui/Menu.vue";
 import FileThumb from "./FileThumb.vue";
@@ -13,7 +12,7 @@ import { useBox, type MyFile } from "./useBox.ts";
 
 const props = defineProps<{ row: MyFile }>();
 const { working, change, download } = useBox();
-const open = ref<"preview" | "share" | "delete" | null>(null);
+const open = ref<"preview" | "share" | null>(null);
 const details = computed(() => `${formatSize(props.row.size)}, ${formatDate(props.row.uploadedAt)}`);
 const loseAccess = computed(() => {
   const names = props.row.sharedWith.map((person) => person.username);
@@ -44,10 +43,10 @@ function openFile() {
       <button type="button" class="button soft" @click="open = 'share'">Share</button>
       <Menu :label="`More actions for ${row.name}`">
         <button type="button" @click="download(row.file)"><Icon name="download" />Download</button>
-        <button type="button" @click="open = 'delete'">
+        <button type="button" :disabled="working" @click="change('/files/trash', api.files.trash({ file: row.file }))">
           <Icon name="trash" />
           <span>
-            Delete
+            Move to trash
             <span v-if="row.sharedWith.length" class="detail">{{ loseAccess }}</span>
           </span>
         </button>
@@ -56,13 +55,6 @@ function openFile() {
 
     <ImagePreview v-if="open === 'preview'" :file="row.file" :name="row.name" :details="details" @close="open = null" />
     <ShareDialog v-if="open === 'share'" :row="row" @close="open = null" />
-    <Dialog v-if="open === 'delete'" :title="`Delete ${row.name}?`" @close="open = null">
-      <p>You can't undo this.</p>
-      <div class="choices">
-        <button type="button" class="button outline" @click="open = null">Cancel</button>
-        <button type="button" class="button danger" :disabled="working" @click="open = null; change('/files/delete', api.files.delete({ file: row.file }))">Delete</button>
-      </div>
-    </Dialog>
   </article>
 </template>
 
@@ -110,12 +102,5 @@ footer {
 }
 .people :deep(.avatar) {
   border: 2px solid var(--color-surface);
-}
-.choices {
-  display: flex;
-  gap: var(--space-2);
-}
-.choices .button {
-  flex: 1;
 }
 </style>

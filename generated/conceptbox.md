@@ -97,6 +97,31 @@ Defined in [Storing](../design/concepts/Storing.md), line 1.
 - `Storing` — instance of `Storing` — [ConceptBox types](../design/types.md), line 11.
   - `Uploader` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 12.
 
+### Trashing
+
+Defined in [Trashing](../design/concepts/Trashing.md), line 1.
+
+#### Actions
+
+- `trash(item: Item) : returns (item: Item)`
+  - Refuses `PURGED`: This was deleted for good.
+  - Refuses `ALREADY_TRASHED`: This is already in the trash.
+- `restore(item: Item) : returns (item: Item)`
+  - Refuses `PURGED`: This was deleted for good.
+  - Refuses `NOT_TRASHED`: This is not in the trash.
+- `purge(item: Item) : returns (item: Item)`
+  - Refuses `PURGED`: This was deleted for good.
+  - Refuses `NOT_TRASHED`: This is not in the trash.
+
+#### Queries
+
+- `_trashed(item: Item) : optional (trashedAt: DateTime)`
+
+#### Instances
+
+- `Trashing` — instance of `Trashing` — [ConceptBox types](../design/types.md), line 18.
+  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 19.
+
 ## Views
 
 _Views name reusable conditions. Multiple `where` blocks are alternatives._
@@ -122,6 +147,7 @@ Authored path: `access.permissions.canRead`.
   where
     Storing._get (file)
     Sharing._recipients (item: file) has (recipient: user)
+    no Trashing._trashed (item: file)
 ```
 
 ### (user) shares files with (person)
@@ -144,14 +170,15 @@ Authored path: `shares.suggesting.sharesFilesWith`.
 _Formers name result shapes evaluated when asked. The source former owns_
 _the authored explanation; this section records the generated shape._
 
-### the files (user) uploaded
+### the files (user) uploaded and hasn't trashed
 
 Authored path: `box.showing.myFiles`.
 - Covered by [Box](../design/compositions/box.md), line 5.
 
 ```former
-Former "the files (user) uploaded" — inputs (user); bindings (file, name, mediaType, size, uploadedAt, recipient, username); promises exactly one record — forms:
+Former "the files (user) uploaded and hasn't trashed" — inputs (user); bindings (file, name, mediaType, size, uploadedAt, recipient, username); promises exactly one record — forms:
   each Storing._uploadedBy (uploader: user) has (file, name, size, uploadedAt)
+    where no Trashing._trashed (item: file)
     where Storing._get (file) has (mediaType)
     form a record of
       file
@@ -200,6 +227,23 @@ Former "the people (user) shares files with" — inputs (user); bindings (person
       username
 ```
 
+### the trash of (user)
+
+Authored path: `trash.listing.myTrash`.
+- Covered by [Trash](../design/compositions/trash.md), line 15.
+
+```former
+Former "the trash of (user)" — inputs (user); bindings (file, name, size, trashedAt); promises exactly one record — forms:
+  each Storing._uploadedBy (uploader: user) has (file, name, size)
+    where Trashing._trashed (item: file) has (trashedAt)
+    arranged by trashedAt, descending
+    form a record of
+      file
+      name
+      size
+      trashedAt
+```
+
 ## Reactions
 
 ### DeliverFaultToAsker
@@ -245,63 +289,7 @@ when Sessioning.use (session, subject: user), asked by box.showing.ShowBox
 where
   earlier, RequestBoundary.request (path: "/box", requestId, session)
 then
-  RequestBoundary.respond (myFiles: former "the files (user) uploaded" with (user), requestId, sharedWithMe: former "the files shared with (user)" with (user))
-```
-
-### files.deleting.Delete
-
-Authored path: `files.deleting.Delete`.
-- Covered by [Files](../design/compositions/files.md), line 24.
-- Covered by [Files](../design/compositions/files.md), line 27.
-
-```reaction
-when RequestBoundary.request (file, path: "/files/delete", requestId, session)
-then
-  Sessioning.use (session)
-```
-
-### files.deleting.Delete:owner#2
-
-Authored path: `files.deleting.Delete`.
-- Covered by [Files](../design/compositions/files.md), line 24.
-- Covered by [Files](../design/compositions/files.md), line 27.
-
-```reaction
-when Sessioning.use (session, subject: user), asked by files.deleting.Delete
-where
-  earlier, RequestBoundary.request (file, path: "/files/delete", requestId, session)
-  view "(user) owns (file)" with (file, user)
-then
-  Storing.delete (file)
-```
-
-### files.deleting.Delete:owner#3
-
-Authored path: `files.deleting.Delete`.
-- Covered by [Files](../design/compositions/files.md), line 24.
-- Covered by [Files](../design/compositions/files.md), line 27.
-
-```reaction
-when Storing.delete (file), asked by files.deleting.Delete:owner#2
-where
-  earlier, RequestBoundary.request (file, path: "/files/delete", requestId, session)
-then
-  RequestBoundary.respond (file, requestId)
-```
-
-### files.deleting.Delete:refused#2
-
-Authored path: `files.deleting.Delete`.
-- Covered by [Files](../design/compositions/files.md), line 24.
-- Covered by [Files](../design/compositions/files.md), line 27.
-
-```reaction
-when Sessioning.use (session, subject: user), asked by files.deleting.Delete
-where
-  earlier, RequestBoundary.request (file, path: "/files/delete", requestId, session)
-  no view "(user) owns (file)" with (file, user)
-then
-  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+  RequestBoundary.respond (myFiles: former "the files (user) uploaded and hasn't trashed" with (user), myTrash: former "the trash of (user)" with (user), requestId, sharedWithMe: former "the files shared with (user)" with (user))
 ```
 
 ### files.deleting.RevokeSharesOfDeleted
@@ -813,6 +801,204 @@ then
   RequestBoundary.respond (people: former "the people (user) shares files with" with (user), requestId)
 ```
 
+### trash.discarding.MoveToTrash
+
+Authored path: `trash.discarding.MoveToTrash`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 8.
+
+```reaction
+when RequestBoundary.request (file, path: "/files/trash", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### trash.discarding.MoveToTrash:owner#2
+
+Authored path: `trash.discarding.MoveToTrash`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by trash.discarding.MoveToTrash
+where
+  earlier, RequestBoundary.request (file, path: "/files/trash", requestId, session)
+  view "(user) owns (file)" with (file, user)
+then
+  Trashing.trash (item: file)
+```
+
+### trash.discarding.MoveToTrash:owner#3
+
+Authored path: `trash.discarding.MoveToTrash`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 8.
+
+```reaction
+when Trashing.trash (item: file), asked by trash.discarding.MoveToTrash:owner#2
+where
+  earlier, RequestBoundary.request (file, path: "/files/trash", requestId, session)
+then
+  RequestBoundary.respond (file, requestId)
+```
+
+### trash.discarding.MoveToTrash:refused#2
+
+Authored path: `trash.discarding.MoveToTrash`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by trash.discarding.MoveToTrash
+where
+  earlier, RequestBoundary.request (file, path: "/files/trash", requestId, session)
+  no view "(user) owns (file)" with (file, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### trash.discarding.Purge
+
+Authored path: `trash.discarding.Purge`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 10.
+
+```reaction
+when RequestBoundary.request (file, path: "/files/purge", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### trash.discarding.Purge:not-trashed#2
+
+Authored path: `trash.discarding.Purge`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 10.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by trash.discarding.Purge
+where
+  earlier, RequestBoundary.request (file, path: "/files/purge", requestId, session)
+  view "(user) owns (file)" with (file, user)
+  no Trashing._trashed (item: file)
+then
+  RequestBoundary.respond (error: "NOT_TRASHED", requestId)
+```
+
+### trash.discarding.Purge:refused#2
+
+Authored path: `trash.discarding.Purge`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 10.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by trash.discarding.Purge
+where
+  earlier, RequestBoundary.request (file, path: "/files/purge", requestId, session)
+  no view "(user) owns (file)" with (file, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### trash.discarding.Purge:trashed#2
+
+Authored path: `trash.discarding.Purge`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 10.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by trash.discarding.Purge
+where
+  earlier, RequestBoundary.request (file, path: "/files/purge", requestId, session)
+  view "(user) owns (file)" with (file, user)
+  Trashing._trashed (item: file)
+then
+  Storing.delete (file)
+```
+
+### trash.discarding.Purge:trashed#3
+
+Authored path: `trash.discarding.Purge`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 10.
+
+```reaction
+when Storing.delete (file), asked by trash.discarding.Purge:trashed#2
+where
+  earlier, RequestBoundary.request (file, path: "/files/purge", requestId, session)
+then
+  RequestBoundary.respond (file, requestId)
+```
+
+### trash.discarding.RecordPurge
+
+Authored path: `trash.discarding.RecordPurge`.
+- Covered by [Trash](../design/compositions/trash.md), line 13.
+
+```reaction
+when Storing.delete (file)
+where
+  Trashing._trashed (item: file)
+then
+  Trashing.purge (item: file)
+```
+
+### trash.restoring.Restore
+
+Authored path: `trash.restoring.Restore`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 9.
+
+```reaction
+when RequestBoundary.request (file, path: "/files/restore", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### trash.restoring.Restore:owner#2
+
+Authored path: `trash.restoring.Restore`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 9.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by trash.restoring.Restore
+where
+  earlier, RequestBoundary.request (file, path: "/files/restore", requestId, session)
+  view "(user) owns (file)" with (file, user)
+then
+  Trashing.restore (item: file)
+```
+
+### trash.restoring.Restore:owner#3
+
+Authored path: `trash.restoring.Restore`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 9.
+
+```reaction
+when Trashing.restore (item: file), asked by trash.restoring.Restore:owner#2
+where
+  earlier, RequestBoundary.request (file, path: "/files/restore", requestId, session)
+then
+  RequestBoundary.respond (file, requestId)
+```
+
+### trash.restoring.Restore:refused#2
+
+Authored path: `trash.restoring.Restore`.
+- Covered by [Trash](../design/compositions/trash.md), line 5.
+- Covered by [Trash](../design/compositions/trash.md), line 9.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by trash.restoring.Restore
+where
+  earlier, RequestBoundary.request (file, path: "/files/restore", requestId, session)
+  no view "(user) owns (file)" with (file, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
 ## Endpoint input contracts
 
 Before recording an action ask, the boundary rejects a body that is not an
@@ -825,11 +1011,13 @@ not listed here have no explicit input contract.
 - `/auth/me` — requires `session`
 - `/auth/register` — requires `password`, `username`
 - `/box` — requires `session`
-- `/files/delete` — requires `file`, `session`
 - `/files/download` — requires `file`, `session`
 - `/files/finish` — requires `file`, `session`
+- `/files/purge` — requires `file`, `session`
+- `/files/restore` — requires `file`, `session`
 - `/files/revoke` — requires `file`, `recipient`, `session`
 - `/files/share` — requires `file`, `session`, `username`
 - `/files/start` — requires `mediaType`, `name`, `session`
+- `/files/trash` — requires `file`, `session`
 - `/files/view` — requires `file`, `session`
 - `/people` — requires `session`
