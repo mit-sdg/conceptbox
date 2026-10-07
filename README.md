@@ -1,8 +1,8 @@
 # ConceptBox
 
-ConceptBox is a small app for keeping files and sharing them with classmates, and a reference app for building with concepts on [sync-engine](https://github.com/mit-sdg/sync-engine). You create an account with a password, upload files, share them with other people, take a share back, and move files to the trash.
+ConceptBox is a small app for keeping files and sharing them with classmates, and a reference app for building with concepts on [sync-engine](https://github.com/mit-sdg/sync-engine). You create an account with a password, upload files, share them with other people, take a share back, and move files to the trash. When someone turns on "Describe uploads", an agent sends each of their new uploads to a language model and saves the description and labels the model writes.
 
-This is the second step of ConceptBox's history. It adds the trash: the trash composition, which uses the Trashing concept. The next commits add an agent that describes and labels uploads, and signing in with Commons. The README in the last commit walks through the whole app and explains how to copy its parts.
+This is the third step of ConceptBox's history. It adds the agent: the describing, labels, and answering compositions, which use the Reasoning, Consenting, and Labeling concepts. The next commit adds signing in with Commons. The README in the last commit walks through the whole app and explains how to copy its parts.
 
 The engine documentation is in `node_modules/@mit-sdg/sync-engine/docs/user/` after `bun install`. If you work with a coding agent, point it at `llms.txt` there, or install the [sync-engine skill](https://github.com/mit-sdg/sync-engine/blob/main/packages/skill/README.md) at the engine version in `package.json`.
 
@@ -27,6 +27,7 @@ Open http://localhost:3000 and create an account. To try sharing, create a secon
 | In `.env` | Without it |
 |---|---|
 | `MONGODB_URI=mongodb://localhost:27017/conceptbox` | Records are kept in an in-memory MongoDB and lost when the server stops. |
+| `GEMINI_API_KEY=…` | Descriptions and labels are written from each file's name. |
 
 - While you edit, run `bun run dev` and `bun run --cwd frontend dev`, and open http://localhost:5173.
 - If `bun run storage` stops with an error about "Address already in use", Garage is already running, perhaps in another terminal.

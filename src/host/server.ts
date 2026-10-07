@@ -3,12 +3,17 @@
  *
  * Settings come from the environment: PORT, PUBLIC_ORIGIN (the origin browsers use),
  * MONGODB_URI, and the bucket's S3_ENDPOINT, S3_PUBLIC_ENDPOINT, S3_BUCKET, S3_REGION,
- * S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY.
+ * S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY. With GEMINI_API_KEY (and optionally GEMINI_MODEL),
+ * the agent sends each upload of a person who turned describing on to Gemini for a description and
+ * labels; without it, the agent writes them from each file's name.
  */
 import { createHttpHandler } from "@mit-sdg/sync-engine-http/handler";
 import { createGateway } from "@mit-sdg/sync-engine/boundary";
+import { createLocalClient } from "@mit-sdg/sync-engine/client";
 import { type Db, MongoClient } from "mongodb";
 import type { ConceptBoxWire } from "../../generated/wire.ts";
+import { answerFromFileName, createDescriber, fileParts } from "../agents/describer.ts";
+import { geminiReasoner, scriptedReasoner } from "../agents/reusable/reasoners.ts";
 import { assembleConceptBox } from "../application.ts";
 import { S3Bucket } from "../concepts/Storing/bucket.ts";
 import { conceptBoxPolicy } from "./http.ts";
@@ -27,15 +32,21 @@ const bucket = new S3Bucket({
   secretAccessKey: required("S3_SECRET_ACCESS_KEY"),
 });
 
-const application = assembleConceptBox({ database, bucket });
+const { GEMINI_API_KEY, GEMINI_MODEL } = process.env;
+const reasoner = GEMINI_API_KEY
+  ? geminiReasoner({ apiKey: GEMINI_API_KEY, model: GEMINI_MODEL ?? "gemini-3.7-flash", parts: fileParts })
+  : scriptedReasoner(answerFromFileName);
+const describer = createDescriber(reasoner);
+const application = assembleConceptBox({ database, bucket }, { observers: [describer.observer] });
 const gateway = createGateway<ConceptBoxWire>({ application });
-const api = createHttpHandler({ application, gateway, policy: conceptBoxPolicy(publicOrigin) });
+describer.start({ application, api: createLocalClient<ConceptBoxWire>({ invoker: gateway }) });
+const handleApi = createHttpHandler({ application, gateway, policy: conceptBoxPolicy(publicOrigin) });
 
 const server = Bun.serve({
   port,
   async fetch(request) {
     const { pathname } = new URL(request.url);
-    if (pathname.startsWith("/api/")) return api(request);
+    if (pathname.startsWith("/api/")) return handleApi(request);
     if (pathname === "/health") return new Response("ok");
     if (request.method !== "GET") return new Response("Method not allowed", { status: 405 });
 
@@ -47,7 +58,7 @@ const server = Bun.serve({
     return new Response("The frontend isn't built yet: run `bun run build`.", { status: 404 });
   },
 });
-console.log(`ConceptBox is listening on ${server.url} for ${publicOrigin}`);
+console.log(`ConceptBox is listening on ${server.url} for ${publicOrigin}; the describer uses the ${reasoner.name} reasoner.`);
 
 async function connect(uri: string | undefined): Promise<Db> {
   if (uri === undefined) {

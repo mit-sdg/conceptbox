@@ -16,6 +16,8 @@ export type UserId = Person["person"];
 
 const box = ref<Box | null>(null);
 const error = ref<string | null>(null);
+/** The label I searched for, and my files that have it (null until `/files/labeled` returns). */
+const search = ref<{ label: string; files: FileId[] | null } | null>(null);
 /** True while `change` waits for a call and the reload after it. */
 const working = ref(false);
 
@@ -30,11 +32,12 @@ async function call<T extends object>(path: Path, request: Promise<T | { error: 
   return { error: messageFor(path, result.error) };
 }
 
-/** Loads my box from `/box`. */
+/** Loads my box from `/box`, and repeats the label search if one is showing. */
 async function refresh() {
   const result = await call("/box", api.box());
   if ("error" in result) error.value = result.error;
   else box.value = result;
+  if (search.value) await searchByLabel(search.value.label);
 }
 
 /**
@@ -57,10 +60,25 @@ async function download(file: FileId) {
   await refresh();
 }
 
+/** Shows my files labeled `label`. A reply that arrives after I change or clear the search is ignored. */
+async function searchByLabel(label: string) {
+  const stillShowing = () => search.value?.label === label;
+  if (!stillShowing()) search.value = { label, files: null };
+  const result = await call("/files/labeled", api.files.labeled({ label }));
+  if (!stillShowing()) return;
+  if ("error" in result) error.value = result.error;
+  else search.value = { label, files: result.labeled.map((row) => row.file) };
+}
+
+function clearSearch() {
+  search.value = null;
+}
+
 /** Clears my box when my session ends, so the next person to sign in on this tab doesn't see it. */
 function reset() {
   box.value = null;
   error.value = null;
+  search.value = null;
 }
 
 /**
@@ -68,5 +86,5 @@ function reset() {
  * BoxPage passes each component the rows it shows; components read everything else from here.
  */
 export function useBox() {
-  return { box, error, working, call, refresh, change, download, reset };
+  return { box, error, search, working, call, refresh, change, download, searchByLabel, clearSearch, reset };
 }

@@ -14,6 +14,11 @@ const messages: Record<string, Record<string, string>> = {
   "/files/trash": { CONFLICT: "That file is already in the trash." },
   "/files/restore": { CONFLICT: "That file isn't in the trash." },
   "/files/purge": { CONFLICT: "That file isn't in the trash." },
+  "/describing/on": { CONFLICT: "“Describe uploads” is already on." },
+  "/describing/off": { CONFLICT: "“Describe uploads” is already off." },
+  "/files/describe": { CONFLICT: "Turn on “Describe uploads” first." },
+  "/files/relabel": { CONFLICT: "Turn on “Describe uploads” first." },
+  "/files/unlabel": { NOT_FOUND: "That label is already gone." },
 };
 
 /** The sentence to show when the endpoint at `path` returns `error`. */

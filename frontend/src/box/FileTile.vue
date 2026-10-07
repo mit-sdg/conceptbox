@@ -4,14 +4,16 @@ import { api } from "../api/client.ts";
 import Avatar from "../reusable/ui/Avatar.vue";
 import Icon from "../reusable/ui/Icon.vue";
 import Menu from "../reusable/ui/Menu.vue";
+import Description from "./Description.vue";
 import FileThumb from "./FileThumb.vue";
 import { formatDate, formatSize, isViewable } from "./format.ts";
 import ImagePreview from "./ImagePreview.vue";
+import LabelChips from "./LabelChips.vue";
 import ShareDialog from "./ShareDialog.vue";
 import { useBox, type MyFile } from "./useBox.ts";
 
 const props = defineProps<{ row: MyFile }>();
-const { working, change, download } = useBox();
+const { box, working, change, download } = useBox();
 const open = ref<"preview" | "share" | null>(null);
 const details = computed(() => `${formatSize(props.row.size)}, ${formatDate(props.row.uploadedAt)}`);
 const loseAccess = computed(() => {
@@ -34,6 +36,8 @@ function openFile() {
     <div class="about">
       <button type="button" class="name" @click="openFile">{{ row.name }}</button>
       <span class="muted">{{ details }}</span>
+      <Description :row="row" />
+      <LabelChips :row="row" />
     </div>
     <footer>
       <div class="people">
@@ -43,6 +47,10 @@ function openFile() {
       <button type="button" class="button soft" @click="open = 'share'">Share</button>
       <Menu :label="`More actions for ${row.name}`">
         <button type="button" @click="download(row.file)"><Icon name="download" />Download</button>
+        <template v-if="box?.describing.on">
+          <button type="button" :disabled="working" @click="change('/files/describe', api.files.describe({ file: row.file }))"><Icon name="describe" />Describe again</button>
+          <button type="button" :disabled="working" @click="change('/files/relabel', api.files.relabel({ file: row.file }))"><Icon name="tag" />Suggest new labels</button>
+        </template>
         <button type="button" :disabled="working" @click="change('/files/trash', api.files.trash({ file: row.file }))">
           <Icon name="trash" />
           <span>

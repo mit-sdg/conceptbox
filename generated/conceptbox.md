@@ -28,7 +28,94 @@ Defined in [Authenticating](../design/concepts/Authenticating.md), line 1.
 
 #### Instances
 
-- `Authenticating` — instance of `Authenticating` — [ConceptBox types](../design/types.md), line 6.
+- `Authenticating` — instance of `Authenticating` — [ConceptBox types](../design/types.md), line 16.
+
+### Consenting
+
+Defined in [Consenting](../design/concepts/Consenting.md), line 1.
+
+#### Actions
+
+- `consent(person: Person, use: Use) : returns (person: Person, use: Use)`
+  - Refuses `ALREADY_CONSENTED`: You have already consented to this.
+- `withdraw(person: Person, use: Use) : returns (person: Person, use: Use)`
+  - Refuses `NOT_CONSENTED`: You haven't consented to this.
+
+#### Queries
+
+- `_consented(person: Person, use: Use) : one (consented: Flag)`
+
+#### Instances
+
+- `Consenting` — instance of `Consenting` — [ConceptBox types](../design/types.md), line 41.
+  - `Person` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 42.
+  - `Use` is `Feature` — [ConceptBox types](../design/types.md), line 43.
+
+### Labeling
+
+Defined in [Labeling](../design/concepts/Labeling.md), line 1.
+
+#### Actions
+
+- `label(item: Item, name: String) : returns (item: Item)`
+  - Refuses `INVALID_LABEL`: A label must have 1 to 40 characters.
+  - Refuses `ALREADY_LABELED`: This already has that label.
+- `remove(item: Item, name: String) : returns (item: Item)`
+  - Refuses `NOT_LABELED`: This doesn't have that label.
+
+#### Queries
+
+- `_labels(item: Item) : many (name: String)`
+- `_labeled(name: String) : many (item: Item)`
+
+#### Instances
+
+- `Labeling` — instance of `Labeling` — [ConceptBox types](../design/types.md), line 34.
+  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 35.
+
+### Reasoning
+
+Defined in [Reasoning](../design/concepts/Reasoning.md), line 1.
+
+#### Actions
+
+- `prompt(subject: Subject, ask: String) : returns (prompt: Prompt)`
+  - Refuses `NOTHING_ASKED`: The question is blank.
+- `take(prompt: Prompt, reasoner: Reasoner) : returns (prompt: Prompt)`
+  - Refuses `UNKNOWN_PROMPT`: There is no such prompt.
+  - Refuses `CLOSED`: This prompt is already concluded or abandoned.
+  - Refuses `ALREADY_TAKEN`: This prompt has already been taken.
+- `extend(prompt: Prompt, reasoner: Reasoner, text: String) : returns ()`
+  - Refuses `UNKNOWN_PROMPT`: There is no such prompt.
+  - Refuses `CLOSED`: This prompt is already concluded or abandoned.
+  - Refuses `NOT_TAKEN`: A reasoner has to take this prompt before answering it.
+  - Refuses `NOT_YOURS`: Only the reasoner that took this prompt can answer it.
+- `conclude(prompt: Prompt, reasoner: Reasoner) : returns (prompt: Prompt, subject: Subject, ask: String)`
+  - Refuses `UNKNOWN_PROMPT`: There is no such prompt.
+  - Refuses `CLOSED`: This prompt is already concluded or abandoned.
+  - Refuses `NOT_TAKEN`: A reasoner has to take this prompt before answering it.
+  - Refuses `NOT_YOURS`: Only the reasoner that took this prompt can answer it.
+  - Refuses `EMPTY_ANSWER`: The answer is still empty; abandon the prompt instead.
+- `abandon(prompt: Prompt, reason: String) : returns (prompt: Prompt)`
+  - Refuses `NO_REASON`: Say why you are abandoning the prompt.
+  - Refuses `UNKNOWN_PROMPT`: There is no such prompt.
+  - Refuses `CLOSED`: This prompt is already concluded or abandoned.
+- `forget(subject: Subject) : returns (subject: Subject)`
+
+#### Queries
+
+- `_waiting() : many (prompt: Prompt, subject: Subject, ask: String)`
+- `_about(subject: Subject) : many (prompt: Prompt, ask: String, answer: String, stage: Stage)`
+- `_taken(reasoner: Reasoner) : many (prompt: Prompt, subject: Subject)`
+- `_reasoner(prompt: Prompt) : optional (reasoner: Reasoner)`
+- `_reason(prompt: Prompt) : optional (reason: String)`
+- `_lines(prompt: Prompt) : many (line: String, position: Number)`
+
+#### Instances
+
+- `Reasoning` — instance of `Reasoning` — [ConceptBox types](../design/types.md), line 37.
+  - `Reasoner` is `Agent` — [ConceptBox types](../design/types.md), line 39.
+  - `Subject` is `Storing.File` — [ConceptBox types](../design/types.md), line 38.
 
 ### Sessioning
 
@@ -44,8 +131,10 @@ Defined in [Sessioning](../design/concepts/Sessioning.md), line 1.
 
 #### Instances
 
-- `Sessioning` — instance of `Sessioning` — [ConceptBox types](../design/types.md), line 8.
-  - `Subject` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 9.
+- `AgentSessioning` — instance of `Sessioning` — [ConceptBox types](../design/types.md), line 21.
+  - `Subject` is `Agent` — [ConceptBox types](../design/types.md), line 22.
+- `Sessioning` — instance of `Sessioning` — [ConceptBox types](../design/types.md), line 18.
+  - `Subject` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 19.
 
 ### Sharing
 
@@ -65,9 +154,9 @@ Defined in [Sharing](../design/concepts/Sharing.md), line 1.
 
 #### Instances
 
-- `Sharing` — instance of `Sharing` — [ConceptBox types](../design/types.md), line 14.
-  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 15.
-  - `Person` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 16.
+- `Sharing` — instance of `Sharing` — [ConceptBox types](../design/types.md), line 27.
+  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 28.
+  - `Person` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 29.
 
 ### Storing
 
@@ -94,8 +183,8 @@ Defined in [Storing](../design/concepts/Storing.md), line 1.
 
 #### Instances
 
-- `Storing` — instance of `Storing` — [ConceptBox types](../design/types.md), line 11.
-  - `Uploader` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 12.
+- `Storing` — instance of `Storing` — [ConceptBox types](../design/types.md), line 24.
+  - `Uploader` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 25.
 
 ### Trashing
 
@@ -119,12 +208,31 @@ Defined in [Trashing](../design/concepts/Trashing.md), line 1.
 
 #### Instances
 
-- `Trashing` — instance of `Trashing` — [ConceptBox types](../design/types.md), line 18.
-  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 19.
+- `Trashing` — instance of `Trashing` — [ConceptBox types](../design/types.md), line 31.
+  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 32.
+
+## Application types
+
+Concrete types:
+
+- `Agent` — [ConceptBox types](../design/types.md), line 8.
+- `Feature` — [ConceptBox types](../design/types.md), line 11.
 
 ## Views
 
 _Views name reusable conditions. Multiple `where` blocks are alternatives._
+
+### (file) has an open question that asks (ask)
+
+Authored path: `describing.asking.hasOpenQuestion`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+
+```view
+(file) has an open question that asks (ask) — inputs (file, ask); outputs (); bindings (stage)
+  where
+    Reasoning._about (subject: file) has (ask, stage)
+    stage is among ["WAITING", "FORMING"]
+```
 
 ### (user) owns (file)
 
@@ -150,6 +258,16 @@ Authored path: `access.permissions.canRead`.
     no Trashing._trashed (item: file)
 ```
 
+### (user) has describing on
+
+Authored path: `describing.choosing.describingOn`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+
+```view
+(user) has describing on — inputs (user); outputs (); bindings ()
+  where Consenting._consented (person: user, use: "describe-uploads") has (consented: true)
+```
+
 ### (user) shares files with (person)
 
 Authored path: `shares.suggesting.sharesFilesWith`.
@@ -170,6 +288,30 @@ Authored path: `shares.suggesting.sharesFilesWith`.
 _Formers name result shapes evaluated when asked. The source former owns_
 _the authored explanation; this section records the generated shape._
 
+### the descriptions and labels of (file)
+
+Authored path: `describing.showing.describingOf`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 39.
+
+```former
+Former "the descriptions and labels of (file)" — inputs (file); bindings (descriptionPrompt, answer, stage, reason, labelPrompt, labelStage, labelReason, label, openPrompt, openStage); promises exactly one record — forms:
+  a record of
+    descriptions: each Reasoning._about (subject: file) has (answer, ask: "Describe this file in one or two short sentences, for someone deciding whether to open it.", prompt: descriptionPrompt, stage)
+      where whether Reasoning._reason (prompt: descriptionPrompt) has (reason)
+      form a record of
+        answer
+        reason
+        stage
+    labelQuestions: each Reasoning._about (subject: file) has (ask: "Suggest up to five short labels someone might search for to find this file again. Write each label on its own line, in lowercase, and nothing else.", prompt: labelPrompt, stage: labelStage)
+      where whether Reasoning._reason (prompt: labelPrompt) has (reason: labelReason)
+      form a record of
+        reason: labelReason
+        stage: labelStage
+    labels: the distinct label of each Labeling._labels (item: file) has (name: label)
+    openQuestions: the count of Reasoning._about (subject: file) has (prompt: openPrompt, stage: openStage)
+      where openStage is among ["WAITING", "FORMING"]
+```
+
 ### the files (user) uploaded and hasn't trashed
 
 Authored path: `box.showing.myFiles`.
@@ -189,6 +331,24 @@ Former "the files (user) uploaded and hasn't trashed" — inputs (user); binding
         form a record of
           recipient
           username
+      size
+      uploadedAt
+      … former "the descriptions and labels of (file)" with (file)
+```
+
+### the files (user) uploaded and labeled (label)
+
+Authored path: `labels.finding.myFilesLabeled`.
+- Covered by [Labels](../design/compositions/labels.md), line 11.
+
+```former
+Former "the files (user) uploaded and labeled (label)" — inputs (user, label); bindings (file, name, size, uploadedAt); promises exactly one record — forms:
+  each Storing._uploadedBy (uploader: user) has (file, name, size, uploadedAt)
+    where no Trashing._trashed (item: file)
+    where Labeling._labeled (name: label) has (item: file)
+    form a record of
+      file
+      name
       size
       uploadedAt
 ```
@@ -227,6 +387,18 @@ Former "the people (user) shares files with" — inputs (user); bindings (person
       username
 ```
 
+### the prompts (agent) has taken and not finished
+
+Authored path: `reusable.answering.finding.promptsTakenBy`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 22.
+
+```former
+Former "the prompts (agent) has taken and not finished" — inputs (agent); bindings (prompt); promises exactly one record — forms:
+  each Reasoning._taken (reasoner: agent) has (prompt)
+    form a record of
+      prompt
+```
+
 ### the trash of (user)
 
 Authored path: `trash.listing.myTrash`.
@@ -242,6 +414,31 @@ Former "the trash of (user)" — inputs (user); bindings (file, name, size, tras
       name
       size
       trashedAt
+```
+
+### the waiting prompts
+
+Authored path: `reusable.answering.finding.waitingPrompts`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 22.
+
+```former
+Former "the waiting prompts" — inputs (); bindings (prompt, ask); promises exactly one record — forms:
+  each Reasoning._waiting () has (ask, prompt)
+    form a record of
+      ask
+      prompt
+```
+
+### whether (user) has describing on
+
+Authored path: `describing.choosing.describingSetting`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+
+```former
+Former "whether (user) has describing on" — inputs (user); bindings (consented); promises exactly one record — forms:
+  a record of
+    where Consenting._consented (person: user, use: "describe-uploads") has (consented)
+    on: consented
 ```
 
 ## Reactions
@@ -289,7 +486,391 @@ when Sessioning.use (session, subject: user), asked by box.showing.ShowBox
 where
   earlier, RequestBoundary.request (path: "/box", requestId, session)
 then
-  RequestBoundary.respond (myFiles: former "the files (user) uploaded and hasn't trashed" with (user), myTrash: former "the trash of (user)" with (user), requestId, sharedWithMe: former "the files shared with (user)" with (user))
+  RequestBoundary.respond (describing: former "whether (user) has describing on" with (user), myFiles: former "the files (user) uploaded and hasn't trashed" with (user), myTrash: former "the trash of (user)" with (user), requestId, sharedWithMe: former "the files shared with (user)" with (user))
+```
+
+### describing.applying.LabelFromAnswer
+
+Authored path: `describing.applying.LabelFromAnswer`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 35.
+
+```reaction
+when Reasoning.conclude (prompt, ask: "Suggest up to five short labels someone might search for to find this file again. Write each label on its own line, in lowercase, and nothing else.", subject: file)
+where
+  Storing._get (file)
+  Reasoning._lines (prompt) has (line, position)
+  position is less than 5
+then
+  Labeling.label (item: file, name: line)
+```
+
+### describing.asking.AskForDescription
+
+Authored path: `describing.asking.AskForDescription`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+
+```reaction
+when Storing.finish (file, uploader)
+where
+  view "(user) has describing on" with (user: uploader)
+then
+  Reasoning.prompt (ask: "Describe this file in one or two short sentences, for someone deciding whether to open it.", subject: file)
+```
+
+### describing.asking.AskForLabels
+
+Authored path: `describing.asking.AskForLabels`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+
+```reaction
+when Storing.finish (file, uploader)
+where
+  view "(user) has describing on" with (user: uploader)
+then
+  Reasoning.prompt (ask: "Suggest up to five short labels someone might search for to find this file again. Write each label on its own line, in lowercase, and nothing else.", subject: file)
+```
+
+### describing.asking.DescribeAgain
+
+Authored path: `describing.asking.DescribeAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 19.
+
+```reaction
+when RequestBoundary.request (file, path: "/files/describe", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### describing.asking.DescribeAgain:already-asked#2
+
+Authored path: `describing.asking.DescribeAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 19.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.asking.DescribeAgain
+where
+  view "(user) has describing on" with (user)
+  earlier, RequestBoundary.request (file, path: "/files/describe", requestId, session)
+  view "(user) owns (file)" with (file, user)
+  view "(file) has an open question that asks (ask)" with (ask: "Describe this file in one or two short sentences, for someone deciding whether to open it.", file)
+then
+  RequestBoundary.respond (file, requestId)
+```
+
+### describing.asking.DescribeAgain:consented#2
+
+Authored path: `describing.asking.DescribeAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 19.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.asking.DescribeAgain
+where
+  view "(user) has describing on" with (user)
+  earlier, RequestBoundary.request (file, path: "/files/describe", requestId, session)
+  view "(user) owns (file)" with (file, user)
+  no view "(file) has an open question that asks (ask)" with (ask: "Describe this file in one or two short sentences, for someone deciding whether to open it.", file)
+then
+  Reasoning.prompt (ask: "Describe this file in one or two short sentences, for someone deciding whether to open it.", subject: file)
+```
+
+### describing.asking.DescribeAgain:consented#3
+
+Authored path: `describing.asking.DescribeAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 19.
+
+```reaction
+when Reasoning.prompt (ask: "Describe this file in one or two short sentences, for someone deciding whether to open it.", subject: file), asked by describing.asking.DescribeAgain:consented#2
+where
+  earlier, RequestBoundary.request (file, path: "/files/describe", requestId, session)
+then
+  RequestBoundary.respond (file, requestId)
+```
+
+### describing.asking.DescribeAgain:not-consented#2
+
+Authored path: `describing.asking.DescribeAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 19.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.asking.DescribeAgain
+where
+  no view "(user) has describing on" with (user)
+  earlier, RequestBoundary.request (file, path: "/files/describe", requestId, session)
+  view "(user) owns (file)" with (file, user)
+then
+  RequestBoundary.respond (error: "NOT_CONSENTED", requestId)
+```
+
+### describing.asking.DescribeAgain:refused#2
+
+Authored path: `describing.asking.DescribeAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 19.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.asking.DescribeAgain
+where
+  earlier, RequestBoundary.request (file, path: "/files/describe", requestId, session)
+  no view "(user) owns (file)" with (file, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### describing.asking.SuggestLabelsAgain
+
+Authored path: `describing.asking.SuggestLabelsAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 20.
+
+```reaction
+when RequestBoundary.request (file, path: "/files/relabel", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### describing.asking.SuggestLabelsAgain:already-asked#2
+
+Authored path: `describing.asking.SuggestLabelsAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.asking.SuggestLabelsAgain
+where
+  view "(user) has describing on" with (user)
+  earlier, RequestBoundary.request (file, path: "/files/relabel", requestId, session)
+  view "(user) owns (file)" with (file, user)
+  view "(file) has an open question that asks (ask)" with (ask: "Suggest up to five short labels someone might search for to find this file again. Write each label on its own line, in lowercase, and nothing else.", file)
+then
+  RequestBoundary.respond (file, requestId)
+```
+
+### describing.asking.SuggestLabelsAgain:consented#2
+
+Authored path: `describing.asking.SuggestLabelsAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.asking.SuggestLabelsAgain
+where
+  view "(user) has describing on" with (user)
+  earlier, RequestBoundary.request (file, path: "/files/relabel", requestId, session)
+  view "(user) owns (file)" with (file, user)
+  no view "(file) has an open question that asks (ask)" with (ask: "Suggest up to five short labels someone might search for to find this file again. Write each label on its own line, in lowercase, and nothing else.", file)
+then
+  Reasoning.prompt (ask: "Suggest up to five short labels someone might search for to find this file again. Write each label on its own line, in lowercase, and nothing else.", subject: file)
+```
+
+### describing.asking.SuggestLabelsAgain:consented#3
+
+Authored path: `describing.asking.SuggestLabelsAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 20.
+
+```reaction
+when Reasoning.prompt (ask: "Suggest up to five short labels someone might search for to find this file again. Write each label on its own line, in lowercase, and nothing else.", subject: file), asked by describing.asking.SuggestLabelsAgain:consented#2
+where
+  earlier, RequestBoundary.request (file, path: "/files/relabel", requestId, session)
+then
+  RequestBoundary.respond (file, requestId)
+```
+
+### describing.asking.SuggestLabelsAgain:not-consented#2
+
+Authored path: `describing.asking.SuggestLabelsAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.asking.SuggestLabelsAgain
+where
+  no view "(user) has describing on" with (user)
+  earlier, RequestBoundary.request (file, path: "/files/relabel", requestId, session)
+  view "(user) owns (file)" with (file, user)
+then
+  RequestBoundary.respond (error: "NOT_CONSENTED", requestId)
+```
+
+### describing.asking.SuggestLabelsAgain:refused#2
+
+Authored path: `describing.asking.SuggestLabelsAgain`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 16.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.asking.SuggestLabelsAgain
+where
+  earlier, RequestBoundary.request (file, path: "/files/relabel", requestId, session)
+  no view "(user) owns (file)" with (file, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### describing.choosing.AbandonWhenTurnedOff
+
+Authored path: `describing.choosing.AbandonWhenTurnedOff`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+
+```reaction
+when Consenting.withdraw (person: user, use: "describe-uploads")
+where
+  Storing._uploadedBy (uploader: user) has (file)
+  Reasoning._about (subject: file) has (prompt, stage: "WAITING")
+then
+  Reasoning.abandon (prompt, reason: "You turned off “Describe uploads”.")
+```
+
+### describing.choosing.TurnOff
+
+Authored path: `describing.choosing.TurnOff`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 11.
+
+```reaction
+when RequestBoundary.request (path: "/describing/off", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### describing.choosing.TurnOff#2
+
+Authored path: `describing.choosing.TurnOff`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 11.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.choosing.TurnOff
+then
+  Consenting.withdraw (person: user, use: "describe-uploads")
+```
+
+### describing.choosing.TurnOff#3
+
+Authored path: `describing.choosing.TurnOff`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 11.
+
+```reaction
+when Consenting.withdraw (person: user, use: "describe-uploads"), asked by describing.choosing.TurnOff#2
+where
+  earlier, RequestBoundary.request (path: "/describing/off", requestId, session)
+then
+  RequestBoundary.respond (requestId)
+```
+
+### describing.choosing.TurnOn
+
+Authored path: `describing.choosing.TurnOn`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 10.
+
+```reaction
+when RequestBoundary.request (path: "/describing/on", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### describing.choosing.TurnOn#2
+
+Authored path: `describing.choosing.TurnOn`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 10.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by describing.choosing.TurnOn
+then
+  Consenting.consent (person: user, use: "describe-uploads")
+```
+
+### describing.choosing.TurnOn#3
+
+Authored path: `describing.choosing.TurnOn`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 7.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 10.
+
+```reaction
+when Consenting.consent (person: user, use: "describe-uploads"), asked by describing.choosing.TurnOn#2
+where
+  earlier, RequestBoundary.request (path: "/describing/on", requestId, session)
+then
+  RequestBoundary.respond (requestId)
+```
+
+### describing.forgetting.ForgetQuestionsOfDeleted
+
+Authored path: `describing.forgetting.ForgetQuestionsOfDeleted`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 35.
+
+```reaction
+when Storing.delete (file)
+then
+  Reasoning.forget (subject: file)
+```
+
+### describing.reading.ReadFile
+
+Authored path: `describing.reading.ReadFile`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 27.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 30.
+
+```reaction
+when RequestBoundary.request (path: "/describing/file", prompt, requestId, session)
+then
+  AgentSessioning.use (session)
+```
+
+### describing.reading.ReadFile:deleted#2
+
+Authored path: `describing.reading.ReadFile`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 27.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 30.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by describing.reading.ReadFile
+where
+  Reasoning._taken (reasoner: agent) has (prompt, subject: file)
+  no Storing._get (file)
+  earlier, RequestBoundary.request (path: "/describing/file", prompt, requestId, session)
+then
+  RequestBoundary.respond (error: "FILE_NOT_FOUND", requestId)
+```
+
+### describing.reading.ReadFile:not-taken#2
+
+Authored path: `describing.reading.ReadFile`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 27.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 30.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by describing.reading.ReadFile
+where
+  earlier, RequestBoundary.request (path: "/describing/file", prompt, requestId, session)
+  no Reasoning._taken (reasoner: agent) has (prompt)
+then
+  RequestBoundary.respond (error: "NOT_TAKEN", requestId)
+```
+
+### describing.reading.ReadFile:stored#2
+
+Authored path: `describing.reading.ReadFile`.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 27.
+- Covered by [Describing uploads](../design/compositions/describing.md), line 30.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by describing.reading.ReadFile
+where
+  Reasoning._taken (reasoner: agent) has (prompt, subject: file)
+  Storing._get (file) has (mediaType, name)
+  Storing._download (file) has (url)
+  earlier, RequestBoundary.request (path: "/describing/file", prompt, requestId, session)
+then
+  RequestBoundary.respond (mediaType, name, requestId, url)
 ```
 
 ### files.deleting.RevokeSharesOfDeleted
@@ -498,6 +1079,101 @@ then
   RequestBoundary.respond (file, requestId, uploadUrl)
 ```
 
+### labels.correcting.RemoveLabel
+
+Authored path: `labels.correcting.RemoveLabel`.
+- Covered by [Labels](../design/compositions/labels.md), line 5.
+- Covered by [Labels](../design/compositions/labels.md), line 8.
+
+```reaction
+when RequestBoundary.request (file, label, path: "/files/unlabel", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### labels.correcting.RemoveLabel:owner#2
+
+Authored path: `labels.correcting.RemoveLabel`.
+- Covered by [Labels](../design/compositions/labels.md), line 5.
+- Covered by [Labels](../design/compositions/labels.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by labels.correcting.RemoveLabel
+where
+  earlier, RequestBoundary.request (file, label, path: "/files/unlabel", requestId, session)
+  view "(user) owns (file)" with (file, user)
+then
+  Labeling.remove (item: file, name: label)
+```
+
+### labels.correcting.RemoveLabel:owner#3
+
+Authored path: `labels.correcting.RemoveLabel`.
+- Covered by [Labels](../design/compositions/labels.md), line 5.
+- Covered by [Labels](../design/compositions/labels.md), line 8.
+
+```reaction
+when Labeling.remove (item: file, name: label), asked by labels.correcting.RemoveLabel:owner#2
+where
+  earlier, RequestBoundary.request (file, label, path: "/files/unlabel", requestId, session)
+then
+  RequestBoundary.respond (file, requestId)
+```
+
+### labels.correcting.RemoveLabel:refused#2
+
+Authored path: `labels.correcting.RemoveLabel`.
+- Covered by [Labels](../design/compositions/labels.md), line 5.
+- Covered by [Labels](../design/compositions/labels.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by labels.correcting.RemoveLabel
+where
+  earlier, RequestBoundary.request (file, label, path: "/files/unlabel", requestId, session)
+  no view "(user) owns (file)" with (file, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### labels.deleting.RemoveLabelsOfDeleted
+
+Authored path: `labels.deleting.RemoveLabelsOfDeleted`.
+- Covered by [Labels](../design/compositions/labels.md), line 17.
+
+```reaction
+when Storing.delete (file)
+where
+  Labeling._labels (item: file) has (name: label)
+then
+  Labeling.remove (item: file, name: label)
+```
+
+### labels.finding.FindByLabel
+
+Authored path: `labels.finding.FindByLabel`.
+- Covered by [Labels](../design/compositions/labels.md), line 11.
+- Covered by [Labels](../design/compositions/labels.md), line 14.
+
+```reaction
+when RequestBoundary.request (label, path: "/files/labeled", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### labels.finding.FindByLabel#2
+
+Authored path: `labels.finding.FindByLabel`.
+- Covered by [Labels](../design/compositions/labels.md), line 11.
+- Covered by [Labels](../design/compositions/labels.md), line 14.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by labels.finding.FindByLabel
+where
+  earlier, RequestBoundary.request (label, path: "/files/labeled", requestId, session)
+then
+  RequestBoundary.respond (labeled: former "the files (user) uploaded and labeled (label)" with (label, user), requestId)
+```
+
 ### reusable.accounts.entering.Register
 
 Authored path: `reusable.accounts.entering.Register`.
@@ -627,6 +1303,208 @@ where
   earlier, RequestBoundary.request (path: "/auth/logout", requestId, session)
 then
   RequestBoundary.respond (requestId)
+```
+
+### reusable.answering.abandoning.Abandon
+
+Authored path: `reusable.answering.abandoning.Abandon`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 40.
+
+```reaction
+when RequestBoundary.request (path: "/answers/abandon", prompt, reason, requestId, session)
+then
+  AgentSessioning.use (session)
+```
+
+### reusable.answering.abandoning.Abandon:not-taken#2
+
+Authored path: `reusable.answering.abandoning.Abandon`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 40.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by reusable.answering.abandoning.Abandon
+where
+  earlier, RequestBoundary.request (path: "/answers/abandon", prompt, reason, requestId, session)
+  no Reasoning._taken (reasoner: agent) has (prompt)
+then
+  RequestBoundary.respond (error: "NOT_TAKEN", requestId)
+```
+
+### reusable.answering.abandoning.Abandon:taken#2
+
+Authored path: `reusable.answering.abandoning.Abandon`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 40.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by reusable.answering.abandoning.Abandon
+where
+  Reasoning._taken (reasoner: agent) has (prompt)
+  earlier, RequestBoundary.request (path: "/answers/abandon", prompt, reason, requestId, session)
+then
+  Reasoning.abandon (prompt, reason)
+```
+
+### reusable.answering.abandoning.Abandon:taken#3
+
+Authored path: `reusable.answering.abandoning.Abandon`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 40.
+
+```reaction
+when Reasoning.abandon (prompt, reason), asked by reusable.answering.abandoning.Abandon:taken#2
+where
+  earlier, RequestBoundary.request (path: "/answers/abandon", prompt, reason, requestId, session)
+then
+  RequestBoundary.respond (requestId)
+```
+
+### reusable.answering.finding.ShowOpen
+
+Authored path: `reusable.answering.finding.ShowOpen`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 22.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 25.
+
+```reaction
+when RequestBoundary.request (path: "/answers/open", requestId, session)
+then
+  AgentSessioning.use (session)
+```
+
+### reusable.answering.finding.ShowOpen#2
+
+Authored path: `reusable.answering.finding.ShowOpen`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 22.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 25.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by reusable.answering.finding.ShowOpen
+where
+  earlier, RequestBoundary.request (path: "/answers/open", requestId, session)
+then
+  RequestBoundary.respond (requestId, taken: former "the prompts (agent) has taken and not finished" with (agent), waiting: former "the waiting prompts")
+```
+
+### reusable.answering.writing.Conclude
+
+Authored path: `reusable.answering.writing.Conclude`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 39.
+
+```reaction
+when RequestBoundary.request (path: "/answers/conclude", prompt, requestId, session)
+then
+  AgentSessioning.use (session)
+```
+
+### reusable.answering.writing.Conclude#2
+
+Authored path: `reusable.answering.writing.Conclude`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 39.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by reusable.answering.writing.Conclude
+where
+  earlier, RequestBoundary.request (path: "/answers/conclude", prompt, requestId, session)
+then
+  Reasoning.conclude (prompt, reasoner: agent)
+```
+
+### reusable.answering.writing.Conclude#3
+
+Authored path: `reusable.answering.writing.Conclude`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 39.
+
+```reaction
+when Reasoning.conclude (prompt, reasoner: agent), asked by reusable.answering.writing.Conclude#2
+where
+  earlier, RequestBoundary.request (path: "/answers/conclude", prompt, requestId, session)
+then
+  RequestBoundary.respond (requestId)
+```
+
+### reusable.answering.writing.Extend
+
+Authored path: `reusable.answering.writing.Extend`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 38.
+
+```reaction
+when RequestBoundary.request (path: "/answers/extend", prompt, requestId, session, text)
+then
+  AgentSessioning.use (session)
+```
+
+### reusable.answering.writing.Extend#2
+
+Authored path: `reusable.answering.writing.Extend`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 38.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by reusable.answering.writing.Extend
+where
+  earlier, RequestBoundary.request (path: "/answers/extend", prompt, requestId, session, text)
+then
+  Reasoning.extend (prompt, reasoner: agent, text)
+```
+
+### reusable.answering.writing.Extend#3
+
+Authored path: `reusable.answering.writing.Extend`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 38.
+
+```reaction
+when Reasoning.extend (prompt, reasoner: agent, text), asked by reusable.answering.writing.Extend#2
+where
+  earlier, RequestBoundary.request (path: "/answers/extend", prompt, requestId, session, text)
+then
+  RequestBoundary.respond (requestId)
+```
+
+### reusable.answering.writing.Take
+
+Authored path: `reusable.answering.writing.Take`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 37.
+
+```reaction
+when RequestBoundary.request (path: "/answers/take", prompt, requestId, session)
+then
+  AgentSessioning.use (session)
+```
+
+### reusable.answering.writing.Take#2
+
+Authored path: `reusable.answering.writing.Take`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 37.
+
+```reaction
+when AgentSessioning.use (session, subject: agent), asked by reusable.answering.writing.Take
+where
+  earlier, RequestBoundary.request (path: "/answers/take", prompt, requestId, session)
+then
+  Reasoning.take (prompt, reasoner: agent)
+```
+
+### reusable.answering.writing.Take#3
+
+Authored path: `reusable.answering.writing.Take`.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 34.
+- Covered by [Answering questions](../design/compositions/reusable/answering.md), line 37.
+
+```reaction
+when Reasoning.take (prompt, reasoner: agent), asked by reusable.answering.writing.Take#2
+where
+  earlier, RequestBoundary.request (path: "/answers/take", prompt, requestId, session)
+then
+  RequestBoundary.respond (prompt, requestId)
 ```
 
 ### shares.granting.Share
@@ -1006,18 +1884,30 @@ object or lacks a required key. The response uses `INVALID_INPUT` and names
 the path or missing key. A declared default fills an absent key. Endpoints
 not listed here have no explicit input contract.
 
+- `/answers/abandon` — requires `prompt`, `reason`, `session`
+- `/answers/conclude` — requires `prompt`, `session`
+- `/answers/extend` — requires `prompt`, `session`, `text`
+- `/answers/open` — requires `session`
+- `/answers/take` — requires `prompt`, `session`
 - `/auth/login` — requires `password`, `username`
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`
 - `/auth/register` — requires `password`, `username`
 - `/box` — requires `session`
+- `/describing/file` — requires `prompt`, `session`
+- `/describing/off` — requires `session`
+- `/describing/on` — requires `session`
+- `/files/describe` — requires `file`, `session`
 - `/files/download` — requires `file`, `session`
 - `/files/finish` — requires `file`, `session`
+- `/files/labeled` — requires `label`, `session`
 - `/files/purge` — requires `file`, `session`
+- `/files/relabel` — requires `file`, `session`
 - `/files/restore` — requires `file`, `session`
 - `/files/revoke` — requires `file`, `recipient`, `session`
 - `/files/share` — requires `file`, `session`, `username`
 - `/files/start` — requires `mediaType`, `name`, `session`
 - `/files/trash` — requires `file`, `session`
+- `/files/unlabel` — requires `file`, `label`, `session`
 - `/files/view` — requires `file`, `session`
 - `/people` — requires `session`

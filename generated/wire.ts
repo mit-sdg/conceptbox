@@ -14,6 +14,57 @@ export type Json = null | boolean | number | string | Json[] | { [key: string]: 
 export type AppWideError = never;
 
 export type ConceptBoxWire = {
+  "/answers/abandon": {
+    input: {
+      "prompt": Jsonify<OneOf<[AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_taken"]>>>, ["prompt"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["abandon"]>[0], ["prompt"]>]>>;
+      "reason": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["abandon"]>[0], ["reason"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["AgentSessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "CLOSED" | "INVALID_INPUT" | "NOT_SIGNED_IN" | "NOT_TAKEN" | "NO_REASON" | "UNKNOWN_PROMPT" };
+  };
+  "/answers/conclude": {
+    input: {
+      "prompt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["conclude"]>[0], ["prompt"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["AgentSessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "ALREADY_LABELED" | "CLOSED" | "EMPTY_ANSWER" | "INVALID_INPUT" | "INVALID_LABEL" | "NOT_SIGNED_IN" | "NOT_TAKEN" | "NOT_YOURS" | "UNKNOWN_PROMPT" };
+  };
+  "/answers/extend": {
+    input: {
+      "prompt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["extend"]>[0], ["prompt"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["AgentSessioning"]["use"]>[0], ["session"]>>;
+      "text": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["extend"]>[0], ["text"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "CLOSED" | "INVALID_INPUT" | "NOT_SIGNED_IN" | "NOT_TAKEN" | "NOT_YOURS" | "UNKNOWN_PROMPT" };
+  };
+  "/answers/open": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["AgentSessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "taken": {
+        "prompt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_taken"]>>>, ["prompt"]>>;
+      }[];
+      "waiting": {
+        "ask": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_waiting"]>>>, ["ask"]>>;
+        "prompt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_waiting"]>>>, ["prompt"]>>;
+      }[];
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
+  };
+  "/answers/take": {
+    input: {
+      "prompt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["take"]>[0], ["prompt"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["AgentSessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "prompt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["take"]>[0], ["prompt"]>>;
+    };
+    error: { error: AppWideError | "ALREADY_TAKEN" | "CLOSED" | "INVALID_INPUT" | "NOT_SIGNED_IN" | "UNKNOWN_PROMPT" };
+  };
   "/auth/login": {
     input: {
       "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["authenticate"]>[0], ["password"]>>;
@@ -61,17 +112,31 @@ export type ConceptBoxWire = {
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
-      "myFiles": {
+      "describing": {
+        "on": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Consenting"]["_consented"]>>>, ["consented"]>>;
+      };
+      "myFiles": ({
+        "descriptions": ({
+          "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>>>, ["answer"]>>;
+          "reason": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_reason"]>>>, ["reason"]>> | null;
+          "stage": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>>>, ["stage"]>>;
+        })[];
         "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
+        "labelQuestions": ({
+          "reason": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_reason"]>>>, ["reason"]>> | null;
+          "stage": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>>>, ["stage"]>>;
+        })[];
+        "labels": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Labeling"]["_labels"]>>>, ["name"]>>[];
         "mediaType": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>>>, ["mediaType"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
+        "openQuestions": number;
         "sharedWith": {
           "recipient": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["_username"]>[0], ["user"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>>>, ["recipient"]>]>>;
           "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Authenticating"]["_username"]>>>, ["username"]>>;
         }[];
         "size": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["size"]>>;
         "uploadedAt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["uploadedAt"]>>;
-      }[];
+      })[];
       "myTrash": {
         "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
@@ -88,6 +153,44 @@ export type ConceptBoxWire = {
       }[];
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
+  };
+  "/describing/file": {
+    input: {
+      "prompt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_taken"]>>>, ["prompt"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["AgentSessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "mediaType": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>>>, ["mediaType"]>>;
+      "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>>>, ["name"]>>;
+      "url": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_download"]>>>, ["url"]>>;
+    };
+    error: { error: AppWideError | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOT_SIGNED_IN" | "NOT_TAKEN" };
+  };
+  "/describing/off": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "CLOSED" | "INVALID_INPUT" | "NOT_CONSENTED" | "NOT_SIGNED_IN" | "NO_REASON" | "UNKNOWN_PROMPT" };
+  };
+  "/describing/on": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "ALREADY_CONSENTED" | "INVALID_INPUT" | "NOT_SIGNED_IN" };
+  };
+  "/files/describe": {
+    input: {
+      "file": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["prompt"]>[0], ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>[0], ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>]>>;
+    } | {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["prompt"]>[0], ["subject"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOTHING_ASKED" | "NOT_CONSENTED" | "NOT_FOUND" | "NOT_SIGNED_IN" };
   };
   "/files/download": {
     input: {
@@ -107,7 +210,22 @@ export type ConceptBoxWire = {
     output: {
       "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["finish"]>[0], ["file"]>>;
     };
-    error: { error: AppWideError | "ALREADY_FINISHED" | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOT_SHARED" | "NOT_SIGNED_IN" | "NOT_TRASHED" | "NOT_UPLOADED" | "PURGED" | "TOO_LARGE" };
+    error: { error: AppWideError | "ALREADY_FINISHED" | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOTHING_ASKED" | "NOT_LABELED" | "NOT_SHARED" | "NOT_SIGNED_IN" | "NOT_TRASHED" | "NOT_UPLOADED" | "PURGED" | "TOO_LARGE" };
+  };
+  "/files/labeled": {
+    input: {
+      "label": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Labeling"]["_labeled"]>[0], ["name"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "labeled": {
+        "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Labeling"]["_labeled"]>>>, ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
+        "size": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["size"]>>;
+        "uploadedAt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["uploadedAt"]>>;
+      }[];
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
   "/files/purge": {
     input: {
@@ -117,7 +235,19 @@ export type ConceptBoxWire = {
     output: {
       "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>>;
     };
-    error: { error: AppWideError | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" | "NOT_TRASHED" | "PURGED" };
+    error: { error: AppWideError | "FILE_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_LABELED" | "NOT_SHARED" | "NOT_SIGNED_IN" | "NOT_TRASHED" | "PURGED" };
+  };
+  "/files/relabel": {
+    input: {
+      "file": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["prompt"]>[0], ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>[0], ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>]>>;
+    } | {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["prompt"]>[0], ["subject"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOTHING_ASKED" | "NOT_CONSENTED" | "NOT_FOUND" | "NOT_SIGNED_IN" };
   };
   "/files/restore": {
     input: {
@@ -175,6 +305,17 @@ export type ConceptBoxWire = {
     };
     error: { error: AppWideError | "ALREADY_TRASHED" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" | "PURGED" };
   };
+  "/files/unlabel": {
+    input: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Labeling"]["remove"]>[0], ["item"]>>;
+      "label": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Labeling"]["remove"]>[0], ["name"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Labeling"]["remove"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_LABELED" | "NOT_SIGNED_IN" };
+  };
   "/files/view": {
     input: {
       "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_view"]>[0], ["file"]>]>>;
@@ -202,6 +343,51 @@ export type ConceptBoxWire = {
 export type HttpAppWideError = never;
 
 export type ConceptBoxWireHttp = {
+  "/answers/abandon": {
+    input: {
+      "prompt": Jsonify<OneOf<[AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_taken"]>>>, ["prompt"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["abandon"]>[0], ["prompt"]>]>>;
+      "reason": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["abandon"]>[0], ["reason"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/answers/conclude": {
+    input: {
+      "prompt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["conclude"]>[0], ["prompt"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/answers/extend": {
+    input: {
+      "prompt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["extend"]>[0], ["prompt"]>>;
+      "text": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["extend"]>[0], ["text"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/answers/open": {
+    input: Record<string, never>;
+    output: {
+      "taken": {
+        "prompt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_taken"]>>>, ["prompt"]>>;
+      }[];
+      "waiting": {
+        "ask": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_waiting"]>>>, ["ask"]>>;
+        "prompt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_waiting"]>>>, ["prompt"]>>;
+      }[];
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/answers/take": {
+    input: {
+      "prompt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["take"]>[0], ["prompt"]>>;
+    };
+    output: {
+      "prompt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["take"]>[0], ["prompt"]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
   "/auth/login": {
     input: {
       "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["authenticate"]>[0], ["password"]>>;
@@ -239,17 +425,31 @@ export type ConceptBoxWireHttp = {
   "/box": {
     input: Record<string, never>;
     output: {
-      "myFiles": {
+      "describing": {
+        "on": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Consenting"]["_consented"]>>>, ["consented"]>>;
+      };
+      "myFiles": ({
+        "descriptions": ({
+          "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>>>, ["answer"]>>;
+          "reason": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_reason"]>>>, ["reason"]>> | null;
+          "stage": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>>>, ["stage"]>>;
+        })[];
         "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
+        "labelQuestions": ({
+          "reason": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_reason"]>>>, ["reason"]>> | null;
+          "stage": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>>>, ["stage"]>>;
+        })[];
+        "labels": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Labeling"]["_labels"]>>>, ["name"]>>[];
         "mediaType": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>>>, ["mediaType"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
+        "openQuestions": number;
         "sharedWith": {
           "recipient": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["_username"]>[0], ["user"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>>>, ["recipient"]>]>>;
           "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Authenticating"]["_username"]>>>, ["username"]>>;
         }[];
         "size": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["size"]>>;
         "uploadedAt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["uploadedAt"]>>;
-      }[];
+      })[];
       "myTrash": {
         "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
@@ -266,6 +466,38 @@ export type ConceptBoxWireHttp = {
       }[];
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/describing/file": {
+    input: {
+      "prompt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_taken"]>>>, ["prompt"]>>;
+    };
+    output: {
+      "mediaType": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>>>, ["mediaType"]>>;
+      "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>>>, ["name"]>>;
+      "url": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_download"]>>>, ["url"]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/describing/off": {
+    input: Record<string, never>;
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/describing/on": {
+    input: Record<string, never>;
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/files/describe": {
+    input: {
+      "file": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["prompt"]>[0], ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>]>>;
+    };
+    output: {
+      "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>[0], ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>]>>;
+    } | {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["prompt"]>[0], ["subject"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/files/download": {
     input: {
@@ -285,12 +517,37 @@ export type ConceptBoxWireHttp = {
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
+  "/files/labeled": {
+    input: {
+      "label": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Labeling"]["_labeled"]>[0], ["name"]>>;
+    };
+    output: {
+      "labeled": {
+        "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Labeling"]["_labeled"]>>>, ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["file"]>]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["name"]>>;
+        "size": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["size"]>>;
+        "uploadedAt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Storing"]["_uploadedBy"]>>>, ["uploadedAt"]>>;
+      }[];
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
   "/files/purge": {
     input: {
       "file": Jsonify<OneOf<[AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["_trashed"]>[0], ["item"]>]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>]>>;
     };
     output: {
       "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["delete"]>[0], ["file"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/files/relabel": {
+    input: {
+      "file": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["prompt"]>[0], ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>]>>;
+    };
+    output: {
+      "file": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["_about"]>[0], ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Storing"]["_get"]>[0], ["file"]>]>>;
+    } | {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Reasoning"]["prompt"]>[0], ["subject"]>>;
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
@@ -344,6 +601,16 @@ export type ConceptBoxWireHttp = {
       "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Trashing"]["trash"]>[0], ["item"]>>;
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/files/unlabel": {
+    input: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Labeling"]["remove"]>[0], ["item"]>>;
+      "label": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Labeling"]["remove"]>[0], ["name"]>>;
+    };
+    output: {
+      "file": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Labeling"]["remove"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/files/view": {
     input: {

@@ -2,10 +2,13 @@ import { assemble, type LogSink, type OperationalObserver } from "@mit-sdg/sync-
 import type { Db } from "mongodb";
 import { composition as access } from "./compositions/access.ts";
 import { composition as box } from "./compositions/box.ts";
+import { composition as describing } from "./compositions/describing.ts";
 import { composition as files } from "./compositions/files.ts";
+import { composition as labels } from "./compositions/labels.ts";
 import { composition as shares } from "./compositions/shares.ts";
 import { composition as trash } from "./compositions/trash.ts";
 import { composition as accounts } from "./compositions/reusable/accounts.ts";
+import { composition as answering } from "./compositions/reusable/answering.ts";
 import { applicationConceptSet } from "./concepts.ts";
 import type { Bucket } from "./concepts/Storing/bucket.ts";
 
@@ -19,11 +22,13 @@ export function assembleConceptBox(
     instances: applicationConceptSet.implementations("mongo", resources),
     ...options,
     composition: {
-      reusable: { accounts },
+      reusable: { accounts, answering },
       access,
       files,
       shares,
       trash,
+      describing,
+      labels,
       box,
     },
   });

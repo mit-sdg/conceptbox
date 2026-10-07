@@ -94,6 +94,13 @@ export class MemoryBucket implements Bucket {
     this.objects.set(new URL(uploadUrl).pathname.slice(1), bytes);
   }
 
+  /** Stands in for a browser fetching the bytes at a download link. */
+  async read(downloadUrl: string): Promise<Uint8Array> {
+    const bytes = this.objects.get(new URL(downloadUrl).pathname.slice(1));
+    if (bytes === undefined) throw new Error(`Nothing is stored at ${downloadUrl}`);
+    return bytes;
+  }
+
   uploadUrl(key: string, seconds: number): string {
     return `memory://upload/${key}?expires=${seconds}`;
   }
