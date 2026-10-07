@@ -288,4 +288,4 @@ Open http://localhost:3000 and create an account. To try sharing, create a secon
 - While you edit, run `bun run dev` and `bun run --cwd frontend dev`, and open http://localhost:5173.
 - If `bun run storage` stops with an error about "Address already in use", Garage is already running, perhaps in another terminal.
 - `bun run test` runs the tests. Some print errors on purpose; the last lines show how many passed.
-- `bun run check` checks each concept's code against its specification, checks the generated files, and runs TypeScript.
+- `bun run check` checks each concept's code against its specification, checks the generated files, and runs TypeScript. The type check of the Vue files uses `vue-tsc`, which needs [Node.js](https://nodejs.org) installed; `bun run build` builds the frontend without it.

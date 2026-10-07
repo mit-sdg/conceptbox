@@ -23,7 +23,7 @@
     "start": "bun src/host/server.ts",
     "build": "bun run --cwd frontend build",
     "generate": "sync-engine artifacts pin",
-    "check": "sync-engine check && sync-engine artifacts check && tsc --noEmit",
+    "check": "sync-engine check && sync-engine artifacts check && tsc --noEmit && bun run --cwd frontend typecheck",
     "test": "bun test --timeout 60000",
     "trace": "TRACE=1 bun test tests/compositions/walkthrough.test.ts",
     "storage": "bun scripts/storage.ts start",
