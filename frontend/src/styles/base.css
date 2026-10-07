@@ -1,0 +1,12 @@
+/* Secondary text, such as a file's size and date. */
+.muted {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* A grid of file tiles with as many columns as fit the screen. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
