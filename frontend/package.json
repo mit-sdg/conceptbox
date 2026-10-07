@@ -12,6 +12,7 @@
     "@mit-sdg/sync-engine-http": "1.1.0"
   },
   "devDependencies": {
+    "@types/node": "^24.0.0",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vue/tsconfig": "^0.9.1",
     "typescript": ">=6 <7",

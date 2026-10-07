@@ -1,6 +1,6 @@
 # Shares
 
-People share a file by typing a username, but `Sharing.share` takes a user, so the [share endpoint](reaction:shares.granting.Share) first looks the username up with `Authenticating._byUsername`. The endpoint has four branches: `shared`, when the owner names another user who exists, and the file is shared with them; `yourself`, when the owner types their own username, refused with `SHARING_WITH_YOURSELF`; `no-such-user`, when nobody has the username, refused with `USER_NOT_FOUND`; and `refused`, when someone who doesn't own the file asks, refused with `NOT_FOUND`. If the owner has already shared the file with that person, the share is refused with `ALREADY_SHARED`.
+People share a file by typing a username, but `Sharing.share` takes a user, so the [share endpoint](reaction:shares.granting.Share) first looks the username up with `Registering._byUsername`. The endpoint has four branches: `shared`, when the owner names another user who exists, and the file is shared with them; `yourself`, when the owner types their own username, refused with `SHARING_WITH_YOURSELF`; `no-such-user`, when nobody has the username, refused with `USER_NOT_FOUND`; and `refused`, when someone who doesn't own the file asks, refused with `NOT_FOUND`. If the owner has already shared the file with that person, the share is refused with `ALREADY_SHARED`.
 
 ```endpoints
 shares.granting.Share at /files/share

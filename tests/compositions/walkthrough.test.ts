@@ -129,7 +129,7 @@ describe("ConceptBox", () => {
     });
   });
 
-  test("registering a 33-character username returns Authenticating's INVALID_USERNAME", async () => {
+  test("registering a 33-character username returns Registering's INVALID_USERNAME", async () => {
     const { api } = await startConceptBox();
     expect(await api.auth.register({ username: "m".repeat(33), password: "correct horse" })).toMatchObject({
       error: "INVALID_USERNAME",

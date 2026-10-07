@@ -1,16 +1,16 @@
 import { httpPolicy, type HttpPolicy } from "@mit-sdg/sync-engine-http/policy";
+import { accountsHttp } from "../compositions/reusable/accounts.ts";
+import { commonsHttp } from "../compositions/reusable/commons.ts";
+import { passwordsHttp } from "../compositions/reusable/passwords.ts";
 
 /**
- * The HTTP category the server returns for each refusal. A refusal missing here reaches the browser as
- * INTERNAL_ERROR (500), so each new refusal needs a line. The browser receives only the category; the
- * sentence for each one is in `frontend/src/api/errors.ts`.
+ * The HTTP category the server returns for each refusal from the compositions in `src/compositions/`.
+ * A refusal missing here reaches the browser as INTERNAL_ERROR (500), so each new refusal needs a line.
+ * Each way of signing in declares its categories beside its endpoints. The browser receives only the
+ * category; the sentence for each one is in `frontend/src/api/errors.ts`, or, for signing in, in the
+ * component for that way of signing in.
  */
 const publicErrors = {
-  INVALID_USERNAME: "INVALID_REQUEST",
-  INVALID_PASSWORD: "INVALID_REQUEST",
-  USERNAME_TAKEN: "CONFLICT",
-  INVALID_CREDENTIALS: "UNAUTHORIZED",
-  NOT_SIGNED_IN: "UNAUTHORIZED",
   INVALID_NAME: "INVALID_REQUEST",
   FILE_NOT_FOUND: "NOT_FOUND",
   ALREADY_FINISHED: "CONFLICT",
@@ -29,24 +29,26 @@ const publicErrors = {
 } as const;
 
 /**
- * The HTTP settings: the API under /api, each refusal returned as an HTTP category, and the
- * session in an HttpOnly cookie that register and sign-in set and sign-out clears.
+ * The HTTP settings: the API under /api, each refusal returned as an HTTP category, the session in
+ * an HttpOnly cookie that each way of signing in sets and sign-out clears, and a Commons sign-in
+ * attempt in a second cookie that only the browser that started it holds.
  */
 export function conceptBoxPolicy(publicOrigin: string): HttpPolicy {
   return httpPolicy({
     publicOrigin,
     basePath: "/api",
-    publicErrors,
+    publicErrors: {
+      ...accountsHttp.publicErrors,
+      ...passwordsHttp.publicErrors,
+      ...commonsHttp.publicErrors,
+      ...publicErrors,
+    },
     cookies: {
-      session: {
-        name: "conceptbox-session",
-        input: "session",
-        issue: [
-          { path: "/auth/register", value: "session", expires: "expiresAt" },
-          { path: "/auth/login", value: "session", expires: "expiresAt" },
-        ],
-        clear: ["/auth/logout"],
-      },
+      session: accountsHttp.sessionCookie("conceptbox-session", [
+        ...passwordsHttp.startingSessions,
+        ...commonsHttp.startingSessions,
+      ]),
+      signIn: commonsHttp.signInCookie("conceptbox-sign-in"),
     },
   });
 }

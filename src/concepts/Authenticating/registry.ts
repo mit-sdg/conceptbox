@@ -1,22 +1,18 @@
 import { registerConcept } from "@mit-sdg/sync-engine/assembly";
 import spec from "@design/concepts/Authenticating.md" with { type: "text" };
 import type { Db } from "mongodb";
-import {
-  AuthenticatingConcept,
-  InvalidCredentials,
-  InvalidPassword,
-  InvalidUsername,
-  UsernameTaken,
-} from "./Authenticating.ts";
+import type { User } from "../Registering/Registering.ts";
+import { AuthenticatingConcept, InvalidCredentials, InvalidPassword, PasswordSet } from "./Authenticating.ts";
+
+class Authenticating extends AuthenticatingConcept<User> {}
 
 export const authenticating = registerConcept({
-  class: AuthenticatingConcept,
+  class: Authenticating,
   spec,
   refusals: {
-    INVALID_USERNAME: InvalidUsername,
     INVALID_PASSWORD: InvalidPassword,
-    USERNAME_TAKEN: UsernameTaken,
+    PASSWORD_SET: PasswordSet,
     INVALID_CREDENTIALS: InvalidCredentials,
   },
-  floors: { mongo: ({ database }: { database: Db }, name: string) => new AuthenticatingConcept(database, name) },
+  floors: { mongo: ({ database }: { database: Db }, name: string) => new Authenticating(database, name) },
 });

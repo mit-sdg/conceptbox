@@ -1,15 +1,8 @@
 # Accounts
 
-`Authenticating.authenticate` checks a username and password, and `Sessioning.use` returns a session's user on each request. Neither concept refers to the other. These endpoints call both, so every session they start belongs to the user who has just registered or signed in. An app with those two concepts can copy this composition unchanged; the frontend calls it through `frontend/src/reusable/session.ts` and `SignIn.vue`.
+Every user is created by `Registering.register`, which stores the username other people type to find them. `Sessioning.use` returns a session's user on each request. Neither concept refers to the other. Each way of signing in is a composition of its own: it registers or looks up a user, then calls `Sessioning.start`. To reuse accounts, copy this composition with one or more ways of signing in, such as [passwords](passwords.md) and [Commons](commons.md); the frontend calls them through `frontend/src/reusable/session.ts`.
 
-The [register endpoint](reaction:reusable.accounts.entering.Register) creates an account with Authenticating, then starts a session for it with Sessioning, in one request. The [sign-in endpoint](reaction:reusable.accounts.entering.SignIn) checks the password with Authenticating, then starts a new session. Each responds with the user, the username, the session, and its expiry, and the HTTP server moves the session into a cookie that the page's scripts can't read, as the cookie policy in `src/host/http.ts` declares. A taken username or a wrong password is refused, and the endpoint responds with that refusal.
-
-```endpoints
-reusable.accounts.entering.Register at /auth/register
-reusable.accounts.entering.SignIn at /auth/login
-```
-
-The [me endpoint](reaction:reusable.accounts.identifying.Me) passes the session to `Sessioning.use`, which returns the user, then responds with the user's username from Authenticating. Every endpoint that requires a session starts the same way: `Sessioning.use` returns the session's user, or the request is refused with `NOT_SIGNED_IN`. Each endpoint reads the user from the session, never from the request's inputs.
+The [me endpoint](reaction:reusable.accounts.identifying.Me) passes the session to `Sessioning.use`, which returns the user, then responds with the user's username from `Registering._username`. Every endpoint that requires a session starts the same way: `Sessioning.use` returns the session's user, or the request is refused with `NOT_SIGNED_IN`. Each endpoint reads the user from the session, never from the request's inputs. Each way of signing in responds with the user, and the page then calls the me endpoint for the username.
 
 ```endpoints
 reusable.accounts.identifying.Me at /auth/me

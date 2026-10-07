@@ -58,13 +58,45 @@ button:disabled {
   box-shadow: var(--shadow-card);
 }
 
+/* A narrow card holding a form, such as the sign-in form. */
+.form-card {
+  width: 100%;
+  max-width: 400px;
+  margin: var(--space-12) auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 36px 32px;
+  border-radius: var(--radius-xl);
+}
+
+.form-card h1 {
+  font-size: var(--text-2xl);
+}
+
 /* The sentence shown when a request is refused. */
 .refusal {
   font-size: var(--text-sm);
   color: var(--color-danger);
 }
 
-/* A rounded button. Add `primary` for the main action, `soft` for a lighter one, `outline` for a neutral one. */
+/* A line of text between two rules, such as "or with a password". */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--color-border);
+}
+
+/* A rounded button. Add `primary` for the main action, `soft` for a lighter one, `outline` for a neutral one, and `large` for a form's full-width button. */
 .button {
   display: inline-flex;
   align-items: center;
@@ -98,6 +130,12 @@ button:disabled {
 .button.danger {
   color: #ffffff;
   background: var(--color-danger);
+}
+
+.button.large {
+  min-height: 46px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
 }
 
 .button:hover:not(:disabled) {

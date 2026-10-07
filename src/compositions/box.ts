@@ -6,7 +6,7 @@ import { describingOf, describingSetting } from "./describing.ts";
 import { textInput } from "./reusable/inputs.ts";
 import { myTrash } from "./trash.ts";
 
-const { Authenticating, Sessioning, Sharing, Storing, Trashing } = concepts;
+const { Registering, Sessioning, Sharing, Storing, Trashing } = concepts;
 
 /** The files I uploaded and haven't moved to the trash, newest first, with the people I shared each one with and each one's description and labels. */
 const myFiles = former(
@@ -21,7 +21,7 @@ const myFiles = former(
         size,
         uploadedAt,
         sharedWith: each(Sharing._recipients({ item: file }).is({ recipient }))
-          .where(Authenticating._username({ user: recipient }).is({ username }))
+          .where(Registering._username({ user: recipient }).is({ username }))
           .form({ recipient, username }),
       })
       .splicing(describingOf({ file })),
@@ -35,7 +35,7 @@ const sharedWithMe = former(
       .where(
         canRead({ user, file }),
         Storing._get({ file }).is({ uploader: owner, name, mediaType, size, uploadedAt }),
-        Authenticating._username({ user: owner }).is({ username: ownerName }),
+        Registering._username({ user: owner }).is({ username: ownerName }),
       )
       .form({ file, name, mediaType, size, uploadedAt, ownerName }),
 );

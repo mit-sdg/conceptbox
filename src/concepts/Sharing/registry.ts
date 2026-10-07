@@ -1,7 +1,7 @@
 import { registerConcept } from "@mit-sdg/sync-engine/assembly";
 import spec from "@design/concepts/Sharing.md" with { type: "text" };
 import type { Db } from "mongodb";
-import type { User } from "../Authenticating/Authenticating.ts";
+import type { User } from "../Registering/Registering.ts";
 import type { File } from "../Storing/Storing.ts";
 import { AlreadyShared, NotShared, SharingConcept } from "./Sharing.ts";
 

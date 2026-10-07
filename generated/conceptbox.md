@@ -14,21 +14,20 @@ Defined in [Authenticating](../design/concepts/Authenticating.md), line 1.
 
 #### Actions
 
-- `register(username: String, password: String) : returns (user: User)`
-  - Refuses `INVALID_USERNAME`: A username must have 3 to 32 letters, digits, underscores, or hyphens.
+- `set(user: User, password: String) : returns (user: User)`
   - Refuses `INVALID_PASSWORD`: A password must have 8 to 128 characters.
-  - Refuses `USERNAME_TAKEN`: That username is taken.
-- `authenticate(username: String, password: String) : returns (user: User)`
+  - Refuses `PASSWORD_SET`: This account already has a password.
+- `authenticate(user: User, password: String) : returns (user: User)`
   - Refuses `INVALID_CREDENTIALS`: The username or password is incorrect.
 
 #### Queries
 
-- `_byUsername(username: String) : optional (user: User)`
-- `_username(user: User) : optional (username: String)`
+- `_acceptable(password: String) : one (acceptable: Flag)`
 
 #### Instances
 
-- `Authenticating` — instance of `Authenticating` — [ConceptBox types](../design/types.md), line 16.
+- `Authenticating` — instance of `Authenticating` — [ConceptBox types](../design/types.md), line 20.
+  - `User` is `Registering.User` — [ConceptBox types](../design/types.md), line 21.
 
 ### Consenting
 
@@ -47,9 +46,33 @@ Defined in [Consenting](../design/concepts/Consenting.md), line 1.
 
 #### Instances
 
-- `Consenting` — instance of `Consenting` — [ConceptBox types](../design/types.md), line 41.
-  - `Person` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 42.
-  - `Use` is `Feature` — [ConceptBox types](../design/types.md), line 43.
+- `Consenting` — instance of `Consenting` — [ConceptBox types](../design/types.md), line 49.
+  - `Person` is `Registering.User` — [ConceptBox types](../design/types.md), line 50.
+  - `Use` is `Feature` — [ConceptBox types](../design/types.md), line 51.
+
+### Federating
+
+Defined in [Federating](../design/concepts/Federating.md), line 1.
+
+#### Actions
+
+- `start() : returns (attempt: Attempt, expiresAt: DateTime, address: String)`
+- `finish(attempt: Attempt, nonce: String, code: String) : returns (username: String)`
+  - Refuses `SIGN_IN_EXPIRED`: This sign-in has expired. Start again.
+  - Refuses `SIGN_IN_REFUSED`: The other site didn't confirm this sign-in. Start again.
+- `link(attempt: Attempt, user: User) : returns (user: User)`
+  - Refuses `NOT_CONFIRMED`: This sign-in hasn't been confirmed.
+  - Refuses `ALREADY_LINKED`: This account on the other site is already linked.
+
+#### Queries
+
+- `_user(attempt: Attempt) : optional (user: User)`
+- `_linkable(attempt: Attempt) : one (linkable: Flag)`
+
+#### Instances
+
+- `CommonsFederating` — instance of `Federating` — [ConceptBox types](../design/types.md), line 23.
+  - `User` is `Registering.User` — [ConceptBox types](../design/types.md), line 24.
 
 ### Labeling
 
@@ -70,8 +93,8 @@ Defined in [Labeling](../design/concepts/Labeling.md), line 1.
 
 #### Instances
 
-- `Labeling` — instance of `Labeling` — [ConceptBox types](../design/types.md), line 34.
-  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 35.
+- `Labeling` — instance of `Labeling` — [ConceptBox types](../design/types.md), line 42.
+  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 43.
 
 ### Reasoning
 
@@ -113,9 +136,28 @@ Defined in [Reasoning](../design/concepts/Reasoning.md), line 1.
 
 #### Instances
 
-- `Reasoning` — instance of `Reasoning` — [ConceptBox types](../design/types.md), line 37.
-  - `Reasoner` is `Agent` — [ConceptBox types](../design/types.md), line 39.
-  - `Subject` is `Storing.File` — [ConceptBox types](../design/types.md), line 38.
+- `Reasoning` — instance of `Reasoning` — [ConceptBox types](../design/types.md), line 45.
+  - `Reasoner` is `Agent` — [ConceptBox types](../design/types.md), line 47.
+  - `Subject` is `Storing.File` — [ConceptBox types](../design/types.md), line 46.
+
+### Registering
+
+Defined in [Registering](../design/concepts/Registering.md), line 1.
+
+#### Actions
+
+- `register(username: String) : returns (user: User)`
+  - Refuses `INVALID_USERNAME`: A username must have 3 to 32 letters, digits, underscores, or hyphens.
+  - Refuses `USERNAME_TAKEN`: That username is taken.
+
+#### Queries
+
+- `_byUsername(username: String) : optional (user: User)`
+- `_username(user: User) : optional (username: String)`
+
+#### Instances
+
+- `Registering` — instance of `Registering` — [ConceptBox types](../design/types.md), line 18.
 
 ### Sessioning
 
@@ -131,10 +173,10 @@ Defined in [Sessioning](../design/concepts/Sessioning.md), line 1.
 
 #### Instances
 
-- `AgentSessioning` — instance of `Sessioning` — [ConceptBox types](../design/types.md), line 21.
-  - `Subject` is `Agent` — [ConceptBox types](../design/types.md), line 22.
-- `Sessioning` — instance of `Sessioning` — [ConceptBox types](../design/types.md), line 18.
-  - `Subject` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 19.
+- `AgentSessioning` — instance of `Sessioning` — [ConceptBox types](../design/types.md), line 29.
+  - `Subject` is `Agent` — [ConceptBox types](../design/types.md), line 30.
+- `Sessioning` — instance of `Sessioning` — [ConceptBox types](../design/types.md), line 26.
+  - `Subject` is `Registering.User` — [ConceptBox types](../design/types.md), line 27.
 
 ### Sharing
 
@@ -154,9 +196,9 @@ Defined in [Sharing](../design/concepts/Sharing.md), line 1.
 
 #### Instances
 
-- `Sharing` — instance of `Sharing` — [ConceptBox types](../design/types.md), line 27.
-  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 28.
-  - `Person` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 29.
+- `Sharing` — instance of `Sharing` — [ConceptBox types](../design/types.md), line 35.
+  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 36.
+  - `Person` is `Registering.User` — [ConceptBox types](../design/types.md), line 37.
 
 ### Storing
 
@@ -183,8 +225,8 @@ Defined in [Storing](../design/concepts/Storing.md), line 1.
 
 #### Instances
 
-- `Storing` — instance of `Storing` — [ConceptBox types](../design/types.md), line 24.
-  - `Uploader` is `Authenticating.User` — [ConceptBox types](../design/types.md), line 25.
+- `Storing` — instance of `Storing` — [ConceptBox types](../design/types.md), line 32.
+  - `Uploader` is `Registering.User` — [ConceptBox types](../design/types.md), line 33.
 
 ### Trashing
 
@@ -208,15 +250,15 @@ Defined in [Trashing](../design/concepts/Trashing.md), line 1.
 
 #### Instances
 
-- `Trashing` — instance of `Trashing` — [ConceptBox types](../design/types.md), line 31.
-  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 32.
+- `Trashing` — instance of `Trashing` — [ConceptBox types](../design/types.md), line 39.
+  - `Item` is `Storing.File` — [ConceptBox types](../design/types.md), line 40.
 
 ## Application types
 
 Concrete types:
 
-- `Agent` — [ConceptBox types](../design/types.md), line 8.
-- `Feature` — [ConceptBox types](../design/types.md), line 11.
+- `Agent` — [ConceptBox types](../design/types.md), line 10.
+- `Feature` — [ConceptBox types](../design/types.md), line 13.
 
 ## Views
 
@@ -327,7 +369,7 @@ Former "the files (user) uploaded and hasn't trashed" — inputs (user); binding
       mediaType
       name
       sharedWith: each Sharing._recipients (item: file) has (recipient)
-        where Authenticating._username (user: recipient) has (username)
+        where Registering._username (user: recipient) has (username)
         form a record of
           recipient
           username
@@ -363,7 +405,7 @@ Former "the files shared with (user)" — inputs (user); bindings (file, name, m
   each Sharing._sharedWith (recipient: user) has (item: file)
     where view "(user) can read (file)" with (file, user)
     where Storing._get (file) has (mediaType, name, size, uploadedAt, uploader: owner)
-    where Authenticating._username (user: owner) has (username: ownerName)
+    where Registering._username (user: owner) has (username: ownerName)
     form a record of
       file
       mediaType
@@ -381,7 +423,7 @@ Authored path: `shares.suggesting.people`.
 ```former
 Former "the people (user) shares files with" — inputs (user); bindings (person, username); promises exactly one record — forms:
   each view "(user) shares files with (person)" with (user) has (person)
-    where Authenticating._username (user: person) has (username)
+    where Registering._username (user: person) has (username)
     form a record of
       person
       username
@@ -1174,89 +1216,11 @@ then
   RequestBoundary.respond (labeled: former "the files (user) uploaded and labeled (label)" with (label, user), requestId)
 ```
 
-### reusable.accounts.entering.Register
-
-Authored path: `reusable.accounts.entering.Register`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 5.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 8.
-
-```reaction
-when RequestBoundary.request (password, path: "/auth/register", requestId, username)
-then
-  Authenticating.register (password, username)
-```
-
-### reusable.accounts.entering.Register#2
-
-Authored path: `reusable.accounts.entering.Register`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 5.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 8.
-
-```reaction
-when Authenticating.register (password, username, user), asked by reusable.accounts.entering.Register
-then
-  Sessioning.start (subject: user)
-```
-
-### reusable.accounts.entering.Register#3
-
-Authored path: `reusable.accounts.entering.Register`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 5.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 8.
-
-```reaction
-when Sessioning.start (subject: user, expiresAt, session), asked by reusable.accounts.entering.Register#2
-where
-  earlier, Authenticating.register (password, username, user), asked by reusable.accounts.entering.Register
-  earlier, RequestBoundary.request (password, path: "/auth/register", requestId, username)
-then
-  RequestBoundary.respond (expiresAt, requestId, session, user, username)
-```
-
-### reusable.accounts.entering.SignIn
-
-Authored path: `reusable.accounts.entering.SignIn`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 5.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 9.
-
-```reaction
-when RequestBoundary.request (password, path: "/auth/login", requestId, username)
-then
-  Authenticating.authenticate (password, username)
-```
-
-### reusable.accounts.entering.SignIn#2
-
-Authored path: `reusable.accounts.entering.SignIn`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 5.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 9.
-
-```reaction
-when Authenticating.authenticate (password, username, user), asked by reusable.accounts.entering.SignIn
-then
-  Sessioning.start (subject: user)
-```
-
-### reusable.accounts.entering.SignIn#3
-
-Authored path: `reusable.accounts.entering.SignIn`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 5.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 9.
-
-```reaction
-when Sessioning.start (subject: user, expiresAt, session), asked by reusable.accounts.entering.SignIn#2
-where
-  earlier, Authenticating.authenticate (password, username, user), asked by reusable.accounts.entering.SignIn
-  earlier, RequestBoundary.request (password, path: "/auth/login", requestId, username)
-then
-  RequestBoundary.respond (expiresAt, requestId, session, user, username)
-```
-
 ### reusable.accounts.identifying.Me
 
 Authored path: `reusable.accounts.identifying.Me`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 12.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 15.
+- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 5.
+- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 8.
 
 ```reaction
 when RequestBoundary.request (path: "/auth/me", requestId, session)
@@ -1267,13 +1231,13 @@ then
 ### reusable.accounts.identifying.Me#2
 
 Authored path: `reusable.accounts.identifying.Me`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 12.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 15.
+- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 5.
+- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 8.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by reusable.accounts.identifying.Me
 where
-  Authenticating._username (user) has (username)
+  Registering._username (user) has (username)
   earlier, RequestBoundary.request (path: "/auth/me", requestId, session)
 then
   RequestBoundary.respond (requestId, username)
@@ -1282,8 +1246,8 @@ then
 ### reusable.accounts.leaving.SignOut
 
 Authored path: `reusable.accounts.leaving.SignOut`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 18.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 21.
+- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 11.
+- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 14.
 
 ```reaction
 when RequestBoundary.request (path: "/auth/logout", requestId, session)
@@ -1294,8 +1258,8 @@ then
 ### reusable.accounts.leaving.SignOut#2
 
 Authored path: `reusable.accounts.leaving.SignOut`.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 18.
-- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 21.
+- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 11.
+- Covered by [Accounts](../design/compositions/reusable/accounts.md), line 14.
 
 ```reaction
 when Sessioning.end (session), asked by reusable.accounts.leaving.SignOut
@@ -1507,6 +1471,316 @@ then
   RequestBoundary.respond (prompt, requestId)
 ```
 
+### reusable.commons.finishing.ChooseUsername:expired
+
+Authored path: `reusable.commons.finishing.ChooseUsername`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 22.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 26.
+
+```reaction
+when RequestBoundary.request (attempt, path: "/auth/commons/choose", requestId, username)
+where
+  CommonsFederating._linkable (attempt) has (linkable: false)
+then
+  RequestBoundary.respond (error: "SIGN_IN_EXPIRED", requestId)
+```
+
+### reusable.commons.finishing.ChooseUsername:linkable
+
+Authored path: `reusable.commons.finishing.ChooseUsername`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 22.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 26.
+
+```reaction
+when RequestBoundary.request (attempt, path: "/auth/commons/choose", requestId, username)
+where
+  CommonsFederating._linkable (attempt) has (linkable: true)
+then
+  Registering.register (username)
+```
+
+### reusable.commons.finishing.ChooseUsername:linkable#2
+
+Authored path: `reusable.commons.finishing.ChooseUsername`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 22.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 26.
+
+```reaction
+when Registering.register (username, user), asked by reusable.commons.finishing.ChooseUsername:linkable
+where
+  earlier, RequestBoundary.request (attempt, path: "/auth/commons/choose", requestId, username)
+then
+  CommonsFederating.link (attempt, user)
+```
+
+### reusable.commons.finishing.ChooseUsername:linkable#3
+
+Authored path: `reusable.commons.finishing.ChooseUsername`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 22.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 26.
+
+```reaction
+when CommonsFederating.link (attempt, user), asked by reusable.commons.finishing.ChooseUsername:linkable#2
+then
+  Sessioning.start (subject: user)
+```
+
+### reusable.commons.finishing.ChooseUsername:linkable#4
+
+Authored path: `reusable.commons.finishing.ChooseUsername`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 22.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 26.
+
+```reaction
+when Sessioning.start (subject: user, expiresAt, session), asked by reusable.commons.finishing.ChooseUsername:linkable#3
+where
+  earlier, RequestBoundary.request (attempt, path: "/auth/commons/choose", requestId, username)
+then
+  RequestBoundary.respond (expiresAt, requestId, session, user)
+```
+
+### reusable.commons.finishing.FinishCommons
+
+Authored path: `reusable.commons.finishing.FinishCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 15.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 25.
+
+```reaction
+when RequestBoundary.request (attempt, code, path: "/auth/commons/finish", requestId, state)
+then
+  CommonsFederating.finish (attempt, code, nonce: state)
+```
+
+### reusable.commons.finishing.FinishCommons:new#2
+
+Authored path: `reusable.commons.finishing.FinishCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 15.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 25.
+
+```reaction
+when CommonsFederating.finish (attempt, code, nonce: state, username), asked by reusable.commons.finishing.FinishCommons
+where
+  no CommonsFederating._user (attempt)
+then
+  Registering.register (username)
+```
+
+### reusable.commons.finishing.FinishCommons:new#3
+
+Authored path: `reusable.commons.finishing.FinishCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 15.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 25.
+
+```reaction
+when Registering.register (username, user), asked by reusable.commons.finishing.FinishCommons:new#2
+where
+  earlier, CommonsFederating.finish (attempt, code, nonce: state, username), asked by reusable.commons.finishing.FinishCommons
+then
+  CommonsFederating.link (attempt, user)
+```
+
+### reusable.commons.finishing.FinishCommons:new#4
+
+Authored path: `reusable.commons.finishing.FinishCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 15.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 25.
+
+```reaction
+when CommonsFederating.link (attempt, user), asked by reusable.commons.finishing.FinishCommons:new#3
+then
+  Sessioning.start (subject: user)
+```
+
+### reusable.commons.finishing.FinishCommons:new#5
+
+Authored path: `reusable.commons.finishing.FinishCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 15.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 25.
+
+```reaction
+when Sessioning.start (subject: user, expiresAt, session), asked by reusable.commons.finishing.FinishCommons:new#4
+where
+  earlier, RequestBoundary.request (attempt, code, path: "/auth/commons/finish", requestId, state)
+then
+  RequestBoundary.respond (expiresAt, requestId, session, user)
+```
+
+### reusable.commons.finishing.FinishCommons:returning#2
+
+Authored path: `reusable.commons.finishing.FinishCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 15.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 25.
+
+```reaction
+when CommonsFederating.finish (attempt, code, nonce: state, username), asked by reusable.commons.finishing.FinishCommons
+where
+  CommonsFederating._user (attempt) has (user)
+then
+  Sessioning.start (subject: user)
+```
+
+### reusable.commons.finishing.FinishCommons:returning#3
+
+Authored path: `reusable.commons.finishing.FinishCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 15.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 25.
+
+```reaction
+when Sessioning.start (subject: user, expiresAt, session), asked by reusable.commons.finishing.FinishCommons:returning#2
+where
+  earlier, RequestBoundary.request (attempt, code, path: "/auth/commons/finish", requestId, state)
+then
+  RequestBoundary.respond (expiresAt, requestId, session, user)
+```
+
+### reusable.commons.starting.StartCommons
+
+Authored path: `reusable.commons.starting.StartCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 7.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 10.
+
+```reaction
+when RequestBoundary.request (path: "/auth/commons/start", requestId)
+then
+  CommonsFederating.start ()
+```
+
+### reusable.commons.starting.StartCommons#2
+
+Authored path: `reusable.commons.starting.StartCommons`.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 7.
+- Covered by [Signing in with Commons](../design/compositions/reusable/commons.md), line 10.
+
+```reaction
+when CommonsFederating.start (address, attempt, expiresAt), asked by reusable.commons.starting.StartCommons
+where
+  earlier, RequestBoundary.request (path: "/auth/commons/start", requestId)
+then
+  RequestBoundary.respond (address, attempt, expiresAt, requestId)
+```
+
+### reusable.passwords.entering.Register:accepted
+
+Authored path: `reusable.passwords.entering.Register`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 5.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 12.
+
+```reaction
+when RequestBoundary.request (password, path: "/auth/register", requestId, username)
+where
+  Authenticating._acceptable (password) has (acceptable: true)
+then
+  Registering.register (username)
+```
+
+### reusable.passwords.entering.Register:accepted#2
+
+Authored path: `reusable.passwords.entering.Register`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 5.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 12.
+
+```reaction
+when Registering.register (username, user), asked by reusable.passwords.entering.Register:accepted
+where
+  earlier, RequestBoundary.request (password, path: "/auth/register", requestId, username)
+then
+  Authenticating.set (password, user)
+```
+
+### reusable.passwords.entering.Register:accepted#3
+
+Authored path: `reusable.passwords.entering.Register`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 5.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 12.
+
+```reaction
+when Authenticating.set (password, user), asked by reusable.passwords.entering.Register:accepted#2
+then
+  Sessioning.start (subject: user)
+```
+
+### reusable.passwords.entering.Register:accepted#4
+
+Authored path: `reusable.passwords.entering.Register`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 5.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 12.
+
+```reaction
+when Sessioning.start (subject: user, expiresAt, session), asked by reusable.passwords.entering.Register:accepted#3
+where
+  earlier, RequestBoundary.request (password, path: "/auth/register", requestId, username)
+then
+  RequestBoundary.respond (expiresAt, requestId, session, user)
+```
+
+### reusable.passwords.entering.Register:refused
+
+Authored path: `reusable.passwords.entering.Register`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 5.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 12.
+
+```reaction
+when RequestBoundary.request (password, path: "/auth/register", requestId, username)
+where
+  Authenticating._acceptable (password) has (acceptable: false)
+then
+  RequestBoundary.respond (error: "INVALID_PASSWORD", requestId)
+```
+
+### reusable.passwords.entering.SignIn:known
+
+Authored path: `reusable.passwords.entering.SignIn`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 7.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 13.
+
+```reaction
+when RequestBoundary.request (password, path: "/auth/login", requestId, username)
+where
+  Registering._byUsername (username) has (user)
+then
+  Authenticating.authenticate (password, user)
+```
+
+### reusable.passwords.entering.SignIn:known#2
+
+Authored path: `reusable.passwords.entering.SignIn`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 7.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 13.
+
+```reaction
+when Authenticating.authenticate (password, user), asked by reusable.passwords.entering.SignIn:known
+then
+  Sessioning.start (subject: user)
+```
+
+### reusable.passwords.entering.SignIn:known#3
+
+Authored path: `reusable.passwords.entering.SignIn`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 7.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 13.
+
+```reaction
+when Sessioning.start (subject: user, expiresAt, session), asked by reusable.passwords.entering.SignIn:known#2
+where
+  earlier, RequestBoundary.request (password, path: "/auth/login", requestId, username)
+then
+  RequestBoundary.respond (expiresAt, requestId, session, user)
+```
+
+### reusable.passwords.entering.SignIn:unknown
+
+Authored path: `reusable.passwords.entering.SignIn`.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 7.
+- Covered by [Passwords](../design/compositions/reusable/passwords.md), line 13.
+
+```reaction
+when RequestBoundary.request (password, path: "/auth/login", requestId, username)
+where
+  no Registering._byUsername (username)
+then
+  RequestBoundary.respond (error: "INVALID_CREDENTIALS", requestId)
+```
+
 ### shares.granting.Share
 
 Authored path: `shares.granting.Share`.
@@ -1530,7 +1804,7 @@ when Sessioning.use (session, subject: user), asked by shares.granting.Share
 where
   earlier, RequestBoundary.request (file, path: "/files/share", requestId, session, username)
   view "(user) owns (file)" with (file, user)
-  no Authenticating._byUsername (username)
+  no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "USER_NOT_FOUND", requestId)
 ```
@@ -1561,8 +1835,8 @@ when Sessioning.use (session, subject: user), asked by shares.granting.Share
 where
   earlier, RequestBoundary.request (file, path: "/files/share", requestId, session, username)
   view "(user) owns (file)" with (file, user)
-  Authenticating._byUsername (username) has (user: recipient)
-  Authenticating._byUsername (username) and not (user)
+  Registering._byUsername (username) has (user: recipient)
+  Registering._byUsername (username) and not (user)
 then
   Sharing.share (item: file, recipient)
 ```
@@ -1592,7 +1866,7 @@ when Sessioning.use (session, subject: user), asked by shares.granting.Share
 where
   earlier, RequestBoundary.request (file, path: "/files/share", requestId, session, username)
   view "(user) owns (file)" with (file, user)
-  Authenticating._byUsername (username) has (user)
+  Registering._byUsername (username) has (user)
 then
   RequestBoundary.respond (error: "SHARING_WITH_YOURSELF", requestId)
 ```
@@ -1889,6 +2163,8 @@ not listed here have no explicit input contract.
 - `/answers/extend` — requires `prompt`, `session`, `text`
 - `/answers/open` — requires `session`
 - `/answers/take` — requires `prompt`, `session`
+- `/auth/commons/choose` — requires `attempt`, `username`
+- `/auth/commons/finish` — requires `attempt`, `code`, `state`
 - `/auth/login` — requires `password`, `username`
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
+import CommonsButton from "./reusable/CommonsButton.vue";
+import CommonsCallback from "./reusable/CommonsCallback.vue";
+import PasswordForm from "./reusable/PasswordForm.vue";
 import SignIn from "./reusable/SignIn.vue";
 import BoxPage from "./box/BoxPage.vue";
 import { useSession } from "./reusable/session.ts";
@@ -8,7 +11,16 @@ import Icon from "./reusable/ui/Icon.vue";
 import Menu from "./reusable/ui/Menu.vue";
 
 const { me, checked, load, signOut } = useSession();
-onMounted(load);
+
+const returningFromCommons = ref(window.location.pathname === "/auth/commons/callback");
+onMounted(() => {
+  if (!returningFromCommons.value) load();
+});
+
+function finishedCommons() {
+  returningFromCommons.value = false;
+  if (!checked.value) load();
+}
 </script>
 
 <template>
@@ -20,9 +32,16 @@ onMounted(load);
       <button type="button" @click="signOut">Sign out</button>
     </Menu>
   </header>
-  <main v-if="checked" class="content">
+  <main v-if="returningFromCommons" class="content">
+    <CommonsCallback @done="finishedCommons" />
+  </main>
+  <main v-else-if="checked" class="content">
     <BoxPage v-if="me" />
-    <SignIn v-else icon="box" lead="Store files and share them with classmates." />
+    <SignIn v-else icon="box" lead="Store files and share them with classmates.">
+      <CommonsButton />
+      <p class="divider">or with a password</p>
+      <PasswordForm />
+    </SignIn>
   </main>
 </template>
 

@@ -1,29 +1,10 @@
+import type { HttpCookieBinding } from "@mit-sdg/sync-engine-http/policy";
 import { endpoint, receive, respond } from "@mit-sdg/sync-engine/boundary";
 import { where } from "@mit-sdg/sync-engine/language";
 import { concepts } from "../../concepts.ts";
 import { textInput } from "./inputs.ts";
 
-const { Authenticating, Sessioning } = concepts;
-
-const Register = endpoint(
-  "/auth/register",
-  ({ username, password, user, session, expiresAt }) =>
-    receive({ username, password })
-      .then(Authenticating.register({ username, password }).responds({ user }))
-      .then(Sessioning.start({ subject: user }).responds({ session, expiresAt }))
-      .then(respond({ user, username, session, expiresAt })),
-  { validators: { input: textInput } },
-);
-
-const SignIn = endpoint(
-  "/auth/login",
-  ({ username, password, user, session, expiresAt }) =>
-    receive({ username, password })
-      .then(Authenticating.authenticate({ username, password }).responds({ user }))
-      .then(Sessioning.start({ subject: user }).responds({ session, expiresAt }))
-      .then(respond({ user, username, session, expiresAt })),
-  { validators: { input: textInput } },
-);
+const { Registering, Sessioning } = concepts;
 
 const Me = endpoint(
   "/auth/me",
@@ -31,7 +12,7 @@ const Me = endpoint(
     receive({ session })
       .then(Sessioning.use({ session }).responds({ subject: user }))
       .then(
-        where(Authenticating._username({ user }).is({ username })).then(respond({ username })),
+        where(Registering._username({ user }).is({ username })).then(respond({ username })),
       ),
   { validators: { input: textInput } },
 );
@@ -45,8 +26,21 @@ const SignOut = endpoint(
   { validators: { input: textInput } },
 );
 
+/**
+ * The HTTP settings for these endpoints and Registering: the category for each refusal, and
+ * the session cookie, which each endpoint in `startingSessions` sets and sign-out clears.
+ */
+export const accountsHttp = {
+  publicErrors: { NOT_SIGNED_IN: "UNAUTHORIZED", INVALID_USERNAME: "INVALID_REQUEST", USERNAME_TAKEN: "CONFLICT" },
+  sessionCookie: (name: string, startingSessions: readonly string[]): HttpCookieBinding => ({
+    name,
+    input: "session",
+    issue: startingSessions.map((path) => ({ path, value: "session", expires: "expiresAt" })),
+    clear: ["/auth/logout"],
+  }),
+} as const;
+
 export const composition = {
-  entering: { Register, SignIn },
   identifying: { Me },
   leaving: { SignOut },
 };

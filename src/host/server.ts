@@ -2,6 +2,7 @@
  * The HTTP server: the API under /api, a health check, and the built Vue app.
  *
  * Settings come from the environment: PORT, PUBLIC_ORIGIN (the origin browsers use),
+ * COMMONS_ORIGIN (the Commons people sign in with; https://class.mit-sdg.dev unless set),
  * MONGODB_URI, and the bucket's S3_ENDPOINT, S3_PUBLIC_ENDPOINT, S3_BUCKET, S3_REGION,
  * S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY. With GEMINI_API_KEY (and optionally GEMINI_MODEL),
  * the agent sends each upload of a person who turned describing on to Gemini for a description and
@@ -15,6 +16,7 @@ import type { ConceptBoxWire } from "../../generated/wire.ts";
 import { answerFromFileName, createDescriber, fileParts } from "../agents/describer.ts";
 import { geminiReasoner, scriptedReasoner } from "../agents/reusable/reasoners.ts";
 import { assembleConceptBox } from "../application.ts";
+import { CommonsProvider } from "../concepts/Federating/provider.ts";
 import { S3Bucket } from "../concepts/Storing/bucket.ts";
 import { conceptBoxPolicy } from "./http.ts";
 
@@ -32,15 +34,22 @@ const bucket = new S3Bucket({
   secretAccessKey: required("S3_SECRET_ACCESS_KEY"),
 });
 
+const commons = new CommonsProvider({
+  origin: process.env.COMMONS_ORIGIN ?? "https://class.mit-sdg.dev",
+  app: publicOrigin,
+});
+
 const { GEMINI_API_KEY, GEMINI_MODEL } = process.env;
 const reasoner = GEMINI_API_KEY
   ? geminiReasoner({ apiKey: GEMINI_API_KEY, model: GEMINI_MODEL ?? "gemini-3.7-flash", parts: fileParts })
   : scriptedReasoner(answerFromFileName);
 const describer = createDescriber(reasoner);
-const application = assembleConceptBox({ database, bucket }, { observers: [describer.observer] });
+const application = assembleConceptBox({ database, bucket, commons }, { observers: [describer.observer] });
 const gateway = createGateway<ConceptBoxWire>({ application });
 describer.start({ application, api: createLocalClient<ConceptBoxWire>({ invoker: gateway }) });
 const handleApi = createHttpHandler({ application, gateway, policy: conceptBoxPolicy(publicOrigin) });
+
+const NO_REFERRER = { "Referrer-Policy": "no-referrer" };
 
 const server = Bun.serve({
   port,
@@ -51,10 +60,12 @@ const server = Bun.serve({
     if (request.method !== "GET") return new Response("Method not allowed", { status: 405 });
 
     // A path such as /assets/index.js names a file in the built app; every other path is served index.html.
+    // Every page is served with Referrer-Policy: no-referrer, so a browser on /auth/commons/callback?code=…
+    // sends no Referer header with the code in it.
     const asset = Bun.file(site + pathname);
-    if (pathname !== "/" && (await asset.exists())) return new Response(asset);
+    if (pathname !== "/" && (await asset.exists())) return new Response(asset, { headers: NO_REFERRER });
     const page = Bun.file(`${site}/index.html`);
-    if (await page.exists()) return new Response(page);
+    if (await page.exists()) return new Response(page, { headers: NO_REFERRER });
     return new Response("The frontend isn't built yet: run `bun run build`.", { status: 404 });
   },
 });

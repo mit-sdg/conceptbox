@@ -4,7 +4,7 @@ import { concepts } from "../concepts.ts";
 import { owns } from "./access.ts";
 import { textInput } from "./reusable/inputs.ts";
 
-const { Authenticating, Sessioning, Sharing, Storing } = concepts;
+const { Registering, Sessioning, Sharing, Storing } = concepts;
 
 const Share = endpoint(
   "/files/share",
@@ -14,16 +14,16 @@ const Share = endpoint(
       .then(
         where(
           owns({ user, file }),
-          Authenticating._byUsername({ username }).is({ user: recipient }),
-          Authenticating._byUsername({ username }).is.not({ user }),
+          Registering._byUsername({ username }).is({ user: recipient }),
+          Registering._byUsername({ username }).is.not({ user }),
         )
           .then(Sharing.share({ item: file, recipient }).responds({}))
           .then(respond({ file, recipient }))
           .named("shared"),
-        where(owns({ user, file }), Authenticating._byUsername({ username }).is({ user }))
+        where(owns({ user, file }), Registering._byUsername({ username }).is({ user }))
           .then(respond({ error: "SHARING_WITH_YOURSELF" }))
           .named("yourself"),
-        where(owns({ user, file }), no(Authenticating._byUsername({ username })))
+        where(owns({ user, file }), no(Registering._byUsername({ username })))
           .then(respond({ error: "USER_NOT_FOUND" }))
           .named("no-such-user"),
         where(no(owns({ user, file })))
@@ -70,7 +70,7 @@ const people = former(
   "the people (user) shares files with",
   ({ user }, { person, username }) =>
     each(sharesFilesWith({ user }).is({ person }))
-      .where(Authenticating._username({ user: person }).is({ username }))
+      .where(Registering._username({ user: person }).is({ username }))
       .form({ person, username }),
 );
 

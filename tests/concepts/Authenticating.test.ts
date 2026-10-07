@@ -3,95 +3,68 @@ import {
   AuthenticatingConcept,
   InvalidCredentials,
   InvalidPassword,
-  InvalidUsername,
-  type User,
-  UsernameTaken,
+  PasswordSet,
 } from "../../src/concepts/Authenticating/Authenticating.ts";
 import { testDatabase } from "../support/reusable/mongo.ts";
 import { expectOneWinner } from "../support/reusable/race.ts";
 
 async function setup() {
   const database = await testDatabase();
-  return { authenticating: new AuthenticatingConcept(database), database };
+  return { authenticating: new AuthenticatingConcept<string>(database), database };
 }
 
 describe("Authenticating", () => {
-  test("its principle: Maya signs in again with her password, and a wrong password and an unknown username get the same refusal", async () => {
+  test("its principle: Ben authenticates with his password, and Leo can neither guess it nor set a new one", async () => {
     const { authenticating } = await setup();
 
-    const { user: maya } = await authenticating.register({ username: "maya", password: "sea-shells-42" });
-    expect(await authenticating._byUsername({ username: "maya" })).toEqual([{ user: maya }]);
-    expect(await authenticating._username({ user: maya })).toEqual([{ username: "maya" }]);
+    expect(await authenticating.set({ user: "ben", password: "sea-shells-42" })).toEqual({ user: "ben" });
+    expect(await authenticating.authenticate({ user: "ben", password: "sea-shells-42" })).toEqual({ user: "ben" });
 
-    expect(await authenticating.authenticate({ username: "maya", password: "sea-shells-42" })).toEqual({
-      user: maya,
-    });
+    const guessed = authenticating.authenticate({ user: "ben", password: "guessed-password" });
+    await expect(guessed).rejects.toThrow(InvalidCredentials);
+    await expect(guessed).rejects.toThrow("The username or password is incorrect.");
 
-    await expect(authenticating.register({ username: "maya", password: "another-password" })).rejects.toThrow(
-      UsernameTaken,
+    const reset = authenticating.set({ user: "ben", password: "leos-password" });
+    await expect(reset).rejects.toThrow(PasswordSet);
+    await expect(reset).rejects.toThrow("This account already has a password.");
+    expect(await authenticating.authenticate({ user: "ben", password: "sea-shells-42" })).toEqual({ user: "ben" });
+  });
+
+  test("a user with no password, such as one who signed in with Commons, is refused like a wrong password", async () => {
+    const { authenticating } = await setup();
+    await expect(authenticating.authenticate({ user: "sam", password: "any-password" })).rejects.toThrow(
+      InvalidCredentials,
     );
-
-    const wrongPassword = authenticating.authenticate({ username: "maya", password: "guessed-password" });
-    await expect(wrongPassword).rejects.toThrow(InvalidCredentials);
-    await expect(wrongPassword).rejects.toThrow("The username or password is incorrect.");
-    const unknownUser = authenticating.authenticate({ username: "nobody", password: "guessed-password" });
-    await expect(unknownUser).rejects.toThrow(InvalidCredentials);
-    await expect(unknownUser).rejects.toThrow("The username or password is incorrect.");
   });
 
   test("Authenticating stores an argon2id hash, never the password", async () => {
     const { authenticating, database } = await setup();
-    const { user } = await authenticating.register({ username: "maya", password: "sea-shells-42" });
-    const users = database.collection<{ _id: string; verifier: string }>("authenticating.users");
-    const stored = await users.findOne({ _id: user });
-    expect(user).not.toBe("maya");
+    await authenticating.set({ user: "ben", password: "sea-shells-42" });
+    const stored = await database.collection<{ _id: string; verifier: string }>("authenticating.users").findOne({ _id: "ben" });
     expect(JSON.stringify(stored)).not.toContain("sea-shells-42");
     expect(stored?.verifier).toStartWith("$argon2id$");
   });
 
-  test("a username must have 3 to 32 ASCII letters, digits, underscores, or hyphens", async () => {
+  test("a password must have 8 to 128 characters, and _acceptable returns the same answer as set", async () => {
     const { authenticating } = await setup();
-    for (const username of ["ma", "x".repeat(33), "maya lee", "maya!", ""]) {
-      await expect(authenticating.register({ username, password: "sea-shells-42" })).rejects.toThrow(
-        InvalidUsername,
-      );
+    for (const password of ["short12", "p".repeat(129)]) {
+      expect(await authenticating._acceptable({ password })).toEqual({ acceptable: false });
+      await expect(authenticating.set({ user: "ben", password })).rejects.toThrow(InvalidPassword);
     }
-    for (const username of ["abc", "x".repeat(32), "maya_lee-2"]) {
-      await authenticating.register({ username, password: "sea-shells-42" });
+    for (const password of ["p".repeat(8), "p".repeat(128)]) {
+      expect(await authenticating._acceptable({ password })).toEqual({ acceptable: true });
     }
+    await expect(authenticating.authenticate({ user: "ben", password: "short12" })).rejects.toThrow(InvalidCredentials);
   });
 
-  test("a password must have 8 to 128 characters", async () => {
-    const { authenticating } = await setup();
-    await expect(authenticating.register({ username: "maya", password: "short12" })).rejects.toThrow(
-      InvalidPassword,
-    );
-    await expect(authenticating.register({ username: "maya", password: "p".repeat(129) })).rejects.toThrow(
-      InvalidPassword,
-    );
-    expect(await authenticating._byUsername({ username: "maya" })).toEqual([]);
-  });
-
-  test("register refuses a short password with INVALID_PASSWORD even when the username is taken", async () => {
-    const { authenticating } = await setup();
-    await authenticating.register({ username: "maya", password: "sea-shells-42" });
-    await expect(authenticating.register({ username: "maya", password: "short12" })).rejects.toThrow(InvalidPassword);
-  });
-
-  test("of two registrations of one username at once, Authenticating accepts one and refuses the other with USERNAME_TAKEN", async () => {
+  test("of two passwords set for one user at once, one is set and the other is refused with PASSWORD_SET", async () => {
     const { authenticating } = await setup();
     await expectOneWinner(
       [
-        authenticating.register({ username: "maya", password: "sea-shells-42" }),
-        authenticating.register({ username: "maya", password: "other-password" }),
+        authenticating.set({ user: "ben", password: "sea-shells-42" }),
+        authenticating.set({ user: "ben", password: "other-password" }),
       ],
-      UsernameTaken,
+      PasswordSet,
     );
-  });
-
-  test("_username and _byUsername return no row for an unknown user or username", async () => {
-    const { authenticating } = await setup();
-    expect(await authenticating._username({ user: "missing" as User })).toEqual([]);
-    expect(await authenticating._byUsername({ username: "nobody" })).toEqual([]);
   });
 });
