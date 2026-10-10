@@ -216,7 +216,7 @@ Your app has `generated.config.ts`, `src/concepts.ts`, `src/assembly.ts` (`src/a
 <summary>Connect it</summary>
 
 - Register Federating as `CommonsFederating` in `src/concepts.ts`, and write `instantiate Federating as CommonsFederating` in `design/types.md`.
-- Give the assembly a `CommonsProvider` as `commons`, as `src/host/server.ts` does. In `generated.config.ts` and the tests, give it a `MemoryProvider`.
+- Give the assembly a `CommonsProvider` as `commons`, as `src/host/server.ts` does. Its `app` is the address people open, `PUBLIC_ORIGIN` there; on 6.1040 Apps, set `PUBLIC_ORIGIN` to `https://<name>.mit-sdg.dev` under **Environment variables**. In `generated.config.ts` and the tests, give it a `MemoryProvider`.
 - Pass `redaction: { fields: ["attempt", "nonce", "state", "code"] }` to `assemble`, as `src/application.ts` does, to keep those values out of the logs.
 - In `src/host/http.ts`, add `accountsHttp.publicErrors` and `commonsHttp.publicErrors` to `publicErrors`, pass `commonsHttp.startingSessions` to the session cookie, and add `commonsHttp.signInCookie` as a second cookie. If a refusal has no category in `publicErrors`, the browser receives `INTERNAL_ERROR`. Without `commonsHttp.publicErrors`, a refusal from `CommonsFederating`, such as an expired sign-in, reaches the browser as `INTERNAL_ERROR`.
 - In your `App.vue`, put `CommonsButton.vue` inside `SignIn.vue`, and show `CommonsCallback.vue` on `/auth/commons/callback`, as `frontend/src/App.vue` does.
@@ -283,6 +283,7 @@ Open http://localhost:3000 and create an account. To try sharing, create a secon
 |---|---|
 | `MONGODB_URI=mongodb://localhost:27017/conceptbox` | Records are kept in an in-memory MongoDB and lost when the server stops. |
 | `GEMINI_API_KEY=…` | Descriptions and labels are written from each file's name. |
+| `PUBLIC_ORIGIN=https://<name>.mit-sdg.dev` | The server uses `http://localhost:<PORT>` as its address. Set it to the address people open once the app runs anywhere else: sign-in requests from any other address are refused, and Commons sends people back to `localhost` after they approve. |
 | `COMMONS_ORIGIN=…` | The Commons button sends people to https://class.mit-sdg.dev, which allows any app on `http://localhost` with a port. |
 
 - While you edit, run `bun run dev` and `bun run --cwd frontend dev`, and open http://localhost:5173.
